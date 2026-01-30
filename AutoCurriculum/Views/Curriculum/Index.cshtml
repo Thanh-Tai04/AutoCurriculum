@@ -1,0 +1,64 @@
+﻿@model IEnumerable<AutoCurriculum.Models.Topic>
+@{
+    ViewData["Title"] = "Danh sách giáo trình";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm mb-5">
+        <div class="card-body text-center p-5">
+            <h1 class="text-primary mb-3">Hệ Thống Tạo Giáo Trình</h1>
+            <p class="text-muted">Nhập chủ đề bạn muốn học (Ví dụ: Python, ReactJS...)</p>
+
+            <form asp-action="Generate" method="post" class="d-flex justify-content-center mt-4">
+                <input type="text" name="topicName" class="form-control w-50 me-2" placeholder="Nhập chủ đề..." required />
+                <button type="submit" class="btn btn-primary px-4">Tạo Ngay</button>
+            </form>
+
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success mt-3 d-inline-block">
+                    @TempData["Message"]
+                </div>
+            }
+        </div>
+    </div>
+
+    <h3 class="mb-3 border-start border-4 border-primary ps-3">Lịch Sử Tạo Giáo Trình</h3>
+
+    <table class="table table-hover border">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Tên Chủ Đề</th>
+                <th>Ngày Tạo</th>
+                <th>Trạng Thái</th>
+                <th>Hành Động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TopicId</td>
+                        <td class="fw-bold text-primary">@item.TopicName</td>
+                        <td>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="badge bg-secondary">Mới tạo</span></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.TopicId" class="btn btn-sm btn-outline-info">Xem chi tiết</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        Chưa có dữ liệu. Hãy nhập chủ đề đầu tiên!
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

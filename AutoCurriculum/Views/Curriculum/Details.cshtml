@@ -1,0 +1,60 @@
+﻿@model AutoCurriculum.Models.Topic
+
+@{
+    ViewData["Title"] = "Chi tiết giáo trình";
+}
+
+<div class="container mt-5">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">&larr; Quay lại danh sách</a>
+
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white p-4">
+            <h2 class="mb-0">📚 @Model.TopicName</h2>
+            <small>Ngày tạo: @Model.CreatedAt?.ToString("dd/MM/yyyy")</small>
+        </div>
+        <div class="card-body">
+            <p class="lead">@Model.Description</p>
+
+            <hr />
+
+            <div class="row mb-4 align-items-end">
+                <div class="col-md-8">
+                    <h4 class="text-primary">Danh sách chương</h4>
+                </div>
+                <div class="col-md-4">
+                    <form asp-action="CreateChapter" method="post" class="d-flex">
+                        <input type="hidden" name="topicId" value="@Model.TopicId" />
+
+                        <input type="text" name="chapterTitle" class="form-control me-2" placeholder="Tên chương mới..." required />
+                        <button type="submit" class="btn btn-success">Thêm</button>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.Chapters != null && Model.Chapters.Any())
+            {
+                <div class="list-group">
+                    @foreach (var chapter in Model.Chapters)
+                    {
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <a asp-action="ChapterDetails" asp-route-id="@chapter.ChapterId" class="text-decoration-none fw-bold text-dark">📖 @chapter.ChapterTitle <small class="text-muted ms-2">(Bấm để xem bài học)</small></a>
+                            <div>
+                                <button class="btn btn-sm btn-outline-warning me-1">Sửa</button>
+
+                                <form asp-action="DeleteChapter" asp-route-id="@chapter.ChapterId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa chương này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Chủ đề này chưa có chương nào. Hãy thêm chương đầu tiên!
+                </div>
+            }
+        </div>
+    </div>
+</div>

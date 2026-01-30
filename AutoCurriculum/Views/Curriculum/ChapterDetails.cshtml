@@ -1,0 +1,46 @@
+﻿@model AutoCurriculum.Models.Chapter
+
+@{
+    ViewData["Title"] = "Nội dung chương";
+}
+
+<div class="container mt-5">
+    <a asp-action="Details" asp-route-id="@Model.TopicId" class="btn btn-outline-secondary mb-3">&larr; Quay lại Giáo trình</a>
+
+    <div class="card border-primary mb-3">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📖 Chương: @Model.ChapterTitle</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <form asp-action="CreateLesson" method="post" class="input-group">
+                        <input type="hidden" name="chapterId" value="@Model.ChapterId" />
+                        <span class="input-group-text">Thêm bài mới:</span>
+                        <input type="text" name="lessonTitle" class="form-control" placeholder="Ví dụ: Cài đặt môi trường..." required />
+                        <button class="btn btn-success" type="submit">+ Thêm Bài</button>
+                    </form>
+                </div>
+            </div>
+
+            <h5 class="text-secondary border-bottom pb-2">Danh sách bài học</h5>
+            @if (Model.Lessons != null && Model.Lessons.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var lesson in Model.Lessons)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>📝 @lesson.LessonTitle</span>
+                            <span class="badge bg-light text-dark border">Chưa có nội dung</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted fst-italic">Chưa có bài học nào trong chương này.</p>
+            }
+        </div>
+    </div>
+</div>
