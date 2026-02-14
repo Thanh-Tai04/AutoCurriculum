@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AutoCurriculum")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+07681b2a7249fc9b66e3ad7aed3e29c86c462649")]
 [assembly: System.Reflection.AssemblyProductAttribute("AutoCurriculum")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AutoCurriculum")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
