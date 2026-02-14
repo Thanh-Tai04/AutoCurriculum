@@ -9,8 +9,8 @@
             <h1 class="text-primary mb-3">Hệ Thống Tạo Giáo Trình</h1>
             <p class="text-muted">Nhập chủ đề bạn muốn học (Ví dụ: Python, ReactJS...)</p>
 
-            <form asp-action="Generate" method="post" class="d-flex justify-content-center mt-4">
-                <input type="text" name="topicName" class="form-control w-50 me-2" placeholder="Nhập chủ đề..." required />
+            <form id="formCreateTopic" class="d-flex justify-content-center mt-4">
+                <input type="text" id="txtTopicName" name="topicName" class="form-control w-50 me-2" placeholder="Nhập chủ đề..." required />
                 <button type="submit" class="btn btn-primary px-4">Tạo Ngay</button>
             </form>
 
@@ -35,7 +35,7 @@
                 <th>Hành Động</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tableBodyTopics">
             @if (Model != null && Model.Any())
             {
                 foreach (var item in Model)
@@ -62,3 +62,55 @@
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Bắt sự kiện khi người dùng bấm nút Submit form
+            $("#formCreateTopic").submit(function (e) {
+                e.preventDefault(); // 1. CHẶN KHÔNG CHO RELOAD TRANG
+
+                var topicName = $("#txtTopicName").val(); // Lấy giá trị ô nhập
+
+                // 2. Gửi Ajax
+                $.ajax({
+                    url: '/Curriculum/Generate', // Gọi đến hàm Generate trong Controller
+                    type: 'POST',
+                    data: { topicName: topicName },
+                    success: function (response) {
+                        // 3. Xử lý khi thành công
+                        if (response.success) {
+                            var t = response.data;
+
+                            // Tạo một dòng HTML mới
+                            var newRow = `
+                                <tr class="table-success"> <td>${t.id}</td>
+                                    <td class="fw-bold text-primary">${t.name}</td>
+                                    <td>${t.date}</td>
+                                    <td><span class="badge bg-success">Vừa tạo xong</span></td>
+                                    <td>
+                                        <a href="/Curriculum/Details/${t.id}" class="btn btn-sm btn-outline-info">Xem chi tiết</a>
+                                    </td>
+                                </tr>
+                            `;
+
+                            // Chèn dòng mới vào ĐẦU bảng
+                            $("#tableBodyTopics").prepend(newRow);
+
+                            // Xóa trắng ô nhập liệu
+                            $("#txtTopicName").val('');
+
+                            // Hiện thông báo nhỏ (Optional)
+                            alert(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function () {
+                        alert("Có lỗi xảy ra khi gọi Server!");
+                    }
+                });
+            });
+        });
+    </script>
+}

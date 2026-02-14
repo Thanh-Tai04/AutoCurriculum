@@ -42,12 +42,22 @@ namespace AutoCurriculum.Controllers
                 _context.Topics.Add(newTopic);
                 _context.SaveChanges(); // Lệnh này sẽ chạy INSERT INTO Topics...
 
-                TempData["Message"] = "Đã lưu chủ đề thành công!";
+                return Json(new
+                {
+                    success = true,
+                    message = "Tạo thành công!",
+                    data = new
+                    {
+                        id = newTopic.TopicId,
+                        name = newTopic.TopicName,
+                        date = newTopic.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                    }
+                });
             }
 
-            // 3. Quay lại trang chủ để thấy dữ liệu mới
-            return RedirectToAction("Index");
+            return Json(new { success = false, message = "Chủ đề không được để trống!" });
         }
+
         // 1. GET: Xem chi tiết Topic + Danh sách Chapter bên trong
         public IActionResult Details(int id)
         {
