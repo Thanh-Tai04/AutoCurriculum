@@ -1,16 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AutoCurriculum.Models;
+﻿using AutoCurriculum.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // Thêm dòng này để dùng các hàm xử lý data
+using Newtonsoft.Json.Linq; // Để đọc JSON
+using System.Net.Http; // Để gọi web
 
 namespace AutoCurriculum.Controllers
 {
     public class CurriculumController : Controller
     {
         private readonly AutoCurriculumDbContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public CurriculumController(AutoCurriculumDbContext context)
+        public CurriculumController(AutoCurriculumDbContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         // GET: Hiển thị trang nhập và danh sách chủ đề cũ
@@ -26,22 +30,63 @@ namespace AutoCurriculum.Controllers
 
         // POST: Xử lý khi bấm nút "Tạo Ngay"
         [HttpPost]
-        public IActionResult Generate(string topicName)
+        public async Task<IActionResult> Generate(string topicName)
         {
-            if (!string.IsNullOrEmpty(topicName))
+            if (string.IsNullOrEmpty(topicName))
             {
-                // 1. Tạo đối tượng Topic mới
+                return Json(new
+                {
+                    success = false,
+                    message = "Tên chủ đề không được để trống!"
+                });
+            }
+            try
+            {
+                // 1. GỌI WIKIPEDIA API (PHẦN MỚI CỦA TUẦN 5)
+                string wikiDescription = "Không tìm thấy thông tin trên Wikipedia.";
+
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                //var response = await client.GetAsync(url);
+                {
+                    string formattedTopic = topicName.Trim().Replace(" ", "_");
+                    string url = $"https://vi.wikipedia.org/api/rest_v1/page/summary/{Uri.EscapeUriString(formattedTopic)}";
+
+                    client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                    try
+                    {
+                        var response = await client.GetAsync(url);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonString = await response.Content.ReadAsStringAsync();
+                            var json = JObject.Parse(jsonString);
+
+                            // Lấy trường "extract"
+                            wikiDescription = json["extract"] ?.ToString() ?? wikiDescription;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        wikiDescription = $"Lỗi khi gọi Wikipedia: {ex.Message}";
+                        // Hoặc dùng: Console.WriteLine(ex.Message); rồi xem Output trong Visual Studio
+                    }
+                }
+                // 2. LƯU VÀO DATABASE
                 var newTopic = new Topic
                 {
                     TopicName = topicName,
-                    Description = "Đang chờ tạo nội dung...", // Tạm thời để trống
+                    Description = wikiDescription,
                     CreatedAt = DateTime.Now
                 };
 
-                // 2. Thêm vào Database
                 _context.Topics.Add(newTopic);
-                _context.SaveChanges(); // Lệnh này sẽ chạy INSERT INTO Topics...
+                await _context.SaveChangesAsync(); // Dùng await cho đồng bộ
 
+                // 3. TRẢ VỀ JSON CHO AJAX
                 return Json(new
                 {
                     success = true,
@@ -50,13 +95,18 @@ namespace AutoCurriculum.Controllers
                     {
                         id = newTopic.TopicId,
                         name = newTopic.TopicName,
-                        date = newTopic.CreatedAt?.ToString("dd/MM/yyyy HH:mm")
+                        date = newTopic.CreatedAt?.ToString("dd/MM/yyyy HH:mm"),
+                        desc = wikiDescription
                     }
                 });
             }
-
-            return Json(new { success = false, message = "Chủ đề không được để trống!" });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi Server: " + ex.Message });
+            }
         }
+
+            
 
         // 1. GET: Xem chi tiết Topic + Danh sách Chapter bên trong
         public IActionResult Details(int id)
