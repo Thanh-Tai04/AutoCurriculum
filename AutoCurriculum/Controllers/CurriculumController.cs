@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // Thêm dòng này để dùng các hàm xử lý data
 using Newtonsoft.Json.Linq; // Để đọc JSON
+using System;
 using System.Net.Http; // Để gọi web
+using System.Text;
+using Newtonsoft.Json;
 
 namespace AutoCurriculum.Controllers
 {
@@ -18,6 +21,7 @@ namespace AutoCurriculum.Controllers
         }
 
         // GET: Hiển thị trang nhập và danh sách chủ đề cũ
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Index()
         {
             // Lấy danh sách Topic từ Database, sắp xếp mới nhất lên đầu
@@ -34,59 +38,112 @@ namespace AutoCurriculum.Controllers
         {
             if (string.IsNullOrEmpty(topicName))
             {
-                return Json(new
-                {
-                    success = false,
-                    message = "Tên chủ đề không được để trống!"
-                });
+                return Json(new { success = false, message = "Tên chủ đề không được để trống!" });
             }
+
             try
             {
-                // 1. GỌI WIKIPEDIA API (PHẦN MỚI CỦA TUẦN 5)
                 string wikiDescription = "Không tìm thấy thông tin trên Wikipedia.";
+                List<string> filteredChapters = new List<string>();
+                string exactTitle = topicName; // Mặc định lấy tên người dùng nhập
 
                 var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                //var response = await client.GetAsync(url);
+                try
                 {
-                    string formattedTopic = topicName.Trim().Replace(" ", "_");
-                    string url = $"https://vi.wikipedia.org/api/rest_v1/page/summary/{Uri.EscapeUriString(formattedTopic)}";
+                    // ==========================================
+                    // BƯỚC 1: SEARCH ĐỂ LẤY EXACT TITLE (Tên chuẩn)
+                    // ==========================================
+                    string searchUrl = $"https://vi.wikipedia.org/w/api.php?action=query&list=search&srsearch={Uri.EscapeDataString(topicName)}&utf8=&format=json&srlimit=1";
+                    var searchResponse = await client.GetAsync(searchUrl);
 
-                    client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
-                    client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-                    try
+                    if (searchResponse.IsSuccessStatusCode)
                     {
-                        var response = await client.GetAsync(url);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var jsonString = await response.Content.ReadAsStringAsync();
-                            var json = JObject.Parse(jsonString);
+                        var searchJsonString = await searchResponse.Content.ReadAsStringAsync();
+                        var searchJson = JObject.Parse(searchJsonString);
 
-                            // Lấy trường "extract"
-                            wikiDescription = json["extract"] ?.ToString() ?? wikiDescription;
+                        // Trích xuất kết quả đầu tiên (Top 1)
+                        var searchResults = searchJson["query"]?["search"];
+                        if (searchResults != null && searchResults.HasValues)
+                        {
+                            exactTitle = searchResults[0]["title"]?.ToString() ?? topicName;
+                        }
+                        else
+                        {
+                            // Trả về luôn nếu không search ra gì cả
+                            throw new Exception("Không tìm thấy kết quả nào khớp với từ khóa.");
                         }
                     }
-                    catch (Exception ex)
+
+                    // ==========================================
+                    // BƯỚC 2: CÓ TITLE CHUẨN -> GỌI SUMMARY & SECTIONS
+                    // ==========================================
+                    // Thay khoảng trắng bằng dấu gạch dưới trên Title Chuẩn
+                    string formattedTopic = exactTitle.Replace(" ", "_");
+
+                    string summaryUrl = $"https://vi.wikipedia.org/api/rest_v1/page/summary/{Uri.EscapeDataString(formattedTopic)}";
+                    string sectionUrl = $"https://vi.wikipedia.org/api/rest_v1/page/mobile-sections/{Uri.EscapeDataString(formattedTopic)}";
+
+                    // Lấy Summary
+                    var sumResponse = await client.GetAsync(summaryUrl);
+                    if (sumResponse.IsSuccessStatusCode)
                     {
-                        wikiDescription = $"Lỗi khi gọi Wikipedia: {ex.Message}";
-                        // Hoặc dùng: Console.WriteLine(ex.Message); rồi xem Output trong Visual Studio
+                        var sumJson = JObject.Parse(await sumResponse.Content.ReadAsStringAsync());
+                        wikiDescription = sumJson["extract"]?.ToString() ?? wikiDescription;
+                    }
+
+                    // Lấy Sections và Lọc (Rule-based)
+                    var secResponse = await client.GetAsync(sectionUrl);
+                    if (secResponse.IsSuccessStatusCode)
+                    {
+                        var secJson = JObject.Parse(await secResponse.Content.ReadAsStringAsync());
+                        var sections = secJson["remaining"]?["sections"];
+                        if (sections != null)
+                        {
+                            foreach (var sec in sections)
+                            {
+                                int tocLevel = sec["toclevel"]?.Value<int>() ?? 0;
+                                string heading = sec["line"]?.ToString() ?? "";
+
+                                if (tocLevel > 0 && tocLevel <= 2 &&
+                                    !heading.Contains("Xem thêm") &&
+                                    !heading.Contains("Tham khảo") &&
+                                    !heading.Contains("Liên kết ngoài") &&
+                                    !heading.Contains("Chú thích") &&
+                                    !heading.Contains("Thư mục"))
+                                {
+                                    filteredChapters.Add(heading);
+                                }
+                            }
+                        }
                     }
                 }
-                // 2. LƯU VÀO DATABASE
+                catch (Exception ex)
+                {
+                    wikiDescription = $"Hệ thống báo: {ex.Message}";
+                }
+
+                // Tạm nối danh sách mục lục vào để test
+                if (filteredChapters.Count > 0)
+                {
+                    wikiDescription += "\n\n📌 [KHUNG CHƯƠNG TỪ WIKIPEDIA]: \n- " + string.Join("\n- ", filteredChapters);
+                }
+
+                // ==========================================
+                // BƯỚC 3: LƯU VÀO DATABASE VỚI TÊN CHUẨN
+                // ==========================================
                 var newTopic = new Topic
                 {
-                    TopicName = topicName,
+                    TopicName = exactTitle, // Rất hay: Lưu tên chuẩn xác của Wiki vào DB luôn!
                     Description = wikiDescription,
                     CreatedAt = DateTime.Now
                 };
 
                 _context.Topics.Add(newTopic);
-                await _context.SaveChangesAsync(); // Dùng await cho đồng bộ
+                await _context.SaveChangesAsync();
 
-                // 3. TRẢ VỀ JSON CHO AJAX
                 return Json(new
                 {
                     success = true,
@@ -106,7 +163,7 @@ namespace AutoCurriculum.Controllers
             }
         }
 
-            
+
 
         // 1. GET: Xem chi tiết Topic + Danh sách Chapter bên trong
         public IActionResult Details(int id)
@@ -188,5 +245,7 @@ namespace AutoCurriculum.Controllers
             }
             return RedirectToAction("ChapterDetails", new { id = chapterId });
         }
+
+
     }
 }
