@@ -33,6 +33,7 @@ D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\Microsoft.IdentityMo
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\Mono.TextTemplating.dll
+D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\Newtonsoft.Json.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\System.CodeDom.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\System.Composition.AttributedModel.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\bin\Debug\net8.0\System.Composition.Convention.dll
