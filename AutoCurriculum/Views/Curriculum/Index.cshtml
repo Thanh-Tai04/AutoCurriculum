@@ -7,7 +7,7 @@
     <div class="card shadow-sm mb-5">
         <div class="card-body text-center p-5">
             <h1 class="text-primary mb-3">Hệ Thống Tạo Giáo Trình</h1>
-            <p class="text-muted">Nhập chủ đề bạn muốn học (Ví dụ: Python, ReactJS...)</p>
+            <p class="text-muted">Nhập chủ đề bạn muốn học (Ví dụ: Lập trình Python, ReactJS...)</p>
 
             <form id="formCreateTopic" class="d-flex justify-content-center mt-4">
                 <input type="text" id="txtTopicName" name="topicName" class="form-control w-50 me-2" placeholder="Nhập chủ đề..." required />
@@ -68,23 +68,51 @@
         $(document).ready(function () {
             // Bắt sự kiện khi người dùng bấm nút Submit form
             $("#formCreateTopic").submit(function (e) {
-                e.preventDefault(); // 1. CHẶN KHÔNG CHO RELOAD TRANG
+                e.preventDefault(); // CHẶN KHÔNG CHO RELOAD TRANG
 
-                var topicName = $("#txtTopicName").val(); // Lấy giá trị ô nhập
+                var topicName = $("#txtTopicName").val().trim(); // Lấy giá trị ô nhập
+                if (!topicName) return;
 
-                // 2. Gửi Ajax
+                // Chọn nút submit để tạo hiệu ứng
+                var btn = $(this).find('button[type="submit"]');
+                var originalBtnText = btn.html();
+
+                // ==========================================
+                // HIỆU ỨNG LOADING (Vô hiệu hóa nút & Xoay vòng)
+                // ==========================================
+                btn.prop("disabled", true);
+                btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> AI đang biên soạn...');
+
+                // Tạo một dòng chữ thông báo trạng thái ngay dưới Form
+                if ($("#loadingStatus").length === 0) {
+                    $(this).after('<div id="loadingStatus" class="mt-3 fw-bold text-primary text-center"></div>');
+                }
+                $("#loadingStatus").removeClass("text-danger text-success").addClass("text-primary")
+                    .text("Hệ thống đang tổng hợp dữ liệu Wikipedia và xử lý AI, vui lòng đợi trong giây lát...");
+
+                // Gửi Ajax
                 $.ajax({
-                    url: '/Curriculum/Generate', // Gọi đến hàm Generate trong Controller
+                    url: '/Curriculum/Generate',
                     type: 'POST',
                     data: { topicName: topicName },
                     success: function (response) {
-                        // 3. Xử lý khi thành công
                         if (response.success) {
-                            var t = response.data;
+                            // 1. Hiện thông báo thành công
+                            $("#loadingStatus").removeClass("text-primary").addClass("text-success")
+                                .text("Tạo giáo trình thành công!");
 
-                            // Tạo một dòng HTML mới
+                            // 2. Trả lại nút bấm như cũ
+                            btn.prop("disabled", false);
+                            btn.html(originalBtnText);
+
+                            // 3. Xóa trắng ô nhập liệu
+                            $("#txtTopicName").val('');
+
+                            // 4. Thêm dòng mới vào đầu bảng danh sách bên dưới
+                            var t = response.data;
                             var newRow = `
-                                <tr class="table-success"> <td>${t.id}</td>
+                                <tr class="table-success">
+                                    <td>${t.id}</td>
                                     <td class="fw-bold text-primary">${t.name}</td>
                                     <td>${t.date}</td>
                                     <td><span class="badge bg-success">Vừa tạo xong</span></td>
@@ -93,21 +121,33 @@
                                     </td>
                                 </tr>
                             `;
-
-                            // Chèn dòng mới vào ĐẦU bảng
                             $("#tableBodyTopics").prepend(newRow);
 
-                            // Xóa trắng ô nhập liệu
-                            $("#txtTopicName").val('');
+                            // (Tùy chọn) Ẩn dòng thông báo thành công đi sau 5 giây cho gọn
+                            setTimeout(function() {
+                                $("#loadingStatus").text("");
+                                // Xóa màu nền xanh (table-success) của dòng mới thêm sau 5s để đồng bộ với bảng
+                                $("#tableBodyTopics tr:first").removeClass("table-success");
+                            }, 5000);
 
-                            // Hiện thông báo nhỏ (Optional)
-                            alert(response.message);
                         } else {
-                            alert(response.message);
+                            // In lỗi ra giao diện
+                            $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
+                                .text("Lỗi: " + response.message);
+
+                            // Trả lại nút bấm như cũ
+                            btn.prop("disabled", false);
+                            btn.html(originalBtnText);
                         }
                     },
                     error: function () {
-                        alert("Có lỗi xảy ra khi gọi Server!");
+                        // In lỗi mạng ra giao diện
+                        $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
+                            .text("Lỗi kết nối đến máy chủ. Vui lòng thử lại!");
+
+                        // Trả lại nút bấm như cũ
+                        btn.prop("disabled", false);
+                        btn.html(originalBtnText);
                     }
                 });
             });

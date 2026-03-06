@@ -11,5 +11,9 @@ public partial class Content
 
     public string? ContentText { get; set; }
 
+    public int? ContentOrder { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
     public virtual Lesson Lesson { get; set; } = null!;
 }
