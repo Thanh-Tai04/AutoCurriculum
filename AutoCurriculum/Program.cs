@@ -1,37 +1,54 @@
-using Microsoft.EntityFrameworkCore;
 using AutoCurriculum.Models;
+using AutoCurriculum.Repositories.Interfaces;
+using AutoCurriculum.Repositories.Implementations;
+using AutoCurriculum.Services.Interfaces;
+using AutoCurriculum.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
-// Đọc chuỗi kết nối từ appsettings.json
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// Đăng ký DbContext với hệ thống
+// ── Database ─────────────────────────────────────────────────
 builder.Services.AddDbContext<AutoCurriculumDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ── HttpClient (đặt header User-Agent cho Wikipedia) ─────────
+builder.Services.AddHttpClient("Wikipedia", client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+// ── Repositories ─────────────────────────────────────────────
+builder.Services.AddScoped<ITopicRepository, TopicRepository>();
+builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
+
+// ── External Services ─────────────────────────────────────────
+builder.Services.AddScoped<IWikipediaService, WikipediaService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
+
+// ── Business Services ─────────────────────────────────────────
+builder.Services.AddScoped<ICurriculumService, CurriculumService>();
+
+// ── MVC ───────────────────────────────────────────────────────
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Curriculum}/{action=Index}/{id?}");
 
 app.Run();
