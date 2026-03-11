@@ -3,16 +3,24 @@
   "WorkspaceRootPath": "D:\\HK9\\DoAn2\\AutoCurriculum\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\views\\curriculum\\lessondetails.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\views\\curriculum\\lessondetails.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\repositories\\implementations\\topicrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\repositories\\implementations\\topicrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\services\\implementations\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\services\\implementations\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\services\\implementations\\curriculumservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\services\\implementations\\curriculumservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\services\\implementations\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|solutionrelative:autocurriculum\\services\\implementations\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{199F08B1-FE65-4707-BF3C-37F6247BFA5D}|AutoCurriculum\\AutoCurriculum.csproj|d:\\hk9\\doan2\\autocurriculum\\autocurriculum\\controllers\\curriculumcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -38,20 +46,44 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "TopicRepository.cs",
-              "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
-              "RelativeDocumentMoniker": "AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
-              "ToolTip": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs*",
-              "RelativeToolTip": "AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs*",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAzwB4AAAAJAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "HomeController.cs",
+              "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Controllers\\HomeController.cs",
+              "RelativeDocumentMoniker": "AutoCurriculum\\Controllers\\HomeController.cs",
+              "ToolTip": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Controllers\\HomeController.cs",
+              "RelativeToolTip": "AutoCurriculum\\Controllers\\HomeController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-10T16:21:08.956Z",
+              "WhenOpened": "2026-03-10T16:51:11.119Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LessonDetails.cshtml",
+              "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Views\\Curriculum\\LessonDetails.cshtml",
+              "RelativeDocumentMoniker": "AutoCurriculum\\Views\\Curriculum\\LessonDetails.cshtml",
+              "ToolTip": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Views\\Curriculum\\LessonDetails.cshtml",
+              "RelativeToolTip": "AutoCurriculum\\Views\\Curriculum\\LessonDetails.cshtml",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABMAAABlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-10T16:25:00.389Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
+              "Title": "TopicRepository.cs",
+              "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
+              "RelativeDocumentMoniker": "AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
+              "ToolTip": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
+              "RelativeToolTip": "AutoCurriculum\\Repositories\\Implementations\\TopicRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-10T16:21:08.956Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "GeminiService.cs",
               "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Services\\Implementations\\GeminiService.cs",
               "RelativeDocumentMoniker": "AutoCurriculum\\Services\\Implementations\\GeminiService.cs",
@@ -59,12 +91,11 @@
               "RelativeToolTip": "AutoCurriculum\\Services\\Implementations\\GeminiService.cs",
               "ViewState": "AgIAACMAAAAAAAAAAAAgwDQAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-10T15:43:06.277Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-10T15:43:06.277Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "CurriculumService.cs",
               "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Services\\Implementations\\CurriculumService.cs",
               "RelativeDocumentMoniker": "AutoCurriculum\\Services\\Implementations\\CurriculumService.cs",
@@ -72,12 +103,11 @@
               "RelativeToolTip": "AutoCurriculum\\Services\\Implementations\\CurriculumService.cs",
               "ViewState": "AgIAAF4AAAAAAAAAAAAwwG4AAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-10T15:39:07.232Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-10T15:39:07.232Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "CurriculumController.cs",
               "DocumentMoniker": "D:\\HK9\\DoAn2\\AutoCurriculum\\AutoCurriculum\\Controllers\\CurriculumController.cs",
               "RelativeDocumentMoniker": "AutoCurriculum\\Controllers\\CurriculumController.cs",
@@ -85,8 +115,7 @@
               "RelativeToolTip": "AutoCurriculum\\Controllers\\CurriculumController.cs",
               "ViewState": "AgIAABAAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-10T15:38:49.357Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-10T15:38:49.357Z"
             }
           ]
         }
