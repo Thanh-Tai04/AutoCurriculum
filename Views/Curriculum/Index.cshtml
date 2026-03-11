@@ -1,0 +1,156 @@
+﻿@model IEnumerable<AutoCurriculum.Models.Topic>
+@{
+    ViewData["Title"] = "Danh sách giáo trình";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm mb-5">
+        <div class="card-body text-center p-5">
+            <h1 class="text-primary mb-3">Hệ Thống Tạo Giáo Trình</h1>
+            <p class="text-muted">Nhập chủ đề bạn muốn học (Ví dụ: Lập trình Python, ReactJS...)</p>
+
+            <form id="formCreateTopic" class="d-flex justify-content-center mt-4">
+                <input type="text" id="txtTopicName" name="topicName" class="form-control w-50 me-2" placeholder="Nhập chủ đề..." required />
+                <button type="submit" class="btn btn-primary px-4">Tạo Ngay</button>
+            </form>
+
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success mt-3 d-inline-block">
+                    @TempData["Message"]
+                </div>
+            }
+        </div>
+    </div>
+
+    <h3 class="mb-3 border-start border-4 border-primary ps-3">Lịch Sử Tạo Giáo Trình</h3>
+
+    <table class="table table-hover border">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Tên Chủ Đề</th>
+                <th>Ngày Tạo</th>
+                <th>Trạng Thái</th>
+                <th>Hành Động</th>
+            </tr>
+        </thead>
+        <tbody id="tableBodyTopics">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TopicId</td>
+                        <td class="fw-bold text-primary">@item.TopicName</td>
+                        <td>@item.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td><span class="badge bg-secondary">Mới tạo</span></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.TopicId" class="btn btn-sm btn-outline-info">Xem chi tiết</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        Chưa có dữ liệu. Hãy nhập chủ đề đầu tiên!
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Bắt sự kiện khi người dùng bấm nút Submit form
+            $("#formCreateTopic").submit(function (e) {
+                e.preventDefault(); // CHẶN KHÔNG CHO RELOAD TRANG
+
+                var topicName = $("#txtTopicName").val().trim(); // Lấy giá trị ô nhập
+                if (!topicName) return;
+
+                // Chọn nút submit để tạo hiệu ứng
+                var btn = $(this).find('button[type="submit"]');
+                var originalBtnText = btn.html();
+
+                // ==========================================
+                // HIỆU ỨNG LOADING (Vô hiệu hóa nút & Xoay vòng)
+                // ==========================================
+                btn.prop("disabled", true);
+                btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> AI đang biên soạn...');
+
+                // Tạo một dòng chữ thông báo trạng thái ngay dưới Form
+                if ($("#loadingStatus").length === 0) {
+                    $(this).after('<div id="loadingStatus" class="mt-3 fw-bold text-primary text-center"></div>');
+                }
+                $("#loadingStatus").removeClass("text-danger text-success").addClass("text-primary")
+                    .text("Hệ thống đang tổng hợp dữ liệu Wikipedia và xử lý AI, vui lòng đợi trong giây lát...");
+
+                // Gửi Ajax
+                $.ajax({
+                    url: '/Curriculum/Generate',
+                    type: 'POST',
+                    data: { topicName: topicName },
+                    success: function (response) {
+                        if (response.success) {
+                            // 1. Hiện thông báo thành công
+                            $("#loadingStatus").removeClass("text-primary").addClass("text-success")
+                                .text("Tạo giáo trình thành công!");
+
+                            // 2. Trả lại nút bấm như cũ
+                            btn.prop("disabled", false);
+                            btn.html(originalBtnText);
+
+                            // 3. Xóa trắng ô nhập liệu
+                            $("#txtTopicName").val('');
+
+                            // 4. Thêm dòng mới vào đầu bảng danh sách bên dưới
+                            var t = response.data;
+                            var newRow = `
+                                <tr class="table-success">
+                                    <td>${t.id}</td>
+                                    <td class="fw-bold text-primary">${t.name}</td>
+                                    <td>${t.date}</td>
+                                    <td><span class="badge bg-success">Vừa tạo xong</span></td>
+                                    <td>
+                                        <a href="/Curriculum/Details/${t.id}" class="btn btn-sm btn-outline-info">Xem chi tiết</a>
+                                    </td>
+                                </tr>
+                            `;
+                            $("#tableBodyTopics").prepend(newRow);
+
+                            // (Tùy chọn) Ẩn dòng thông báo thành công đi sau 5 giây cho gọn
+                            setTimeout(function() {
+                                $("#loadingStatus").text("");
+                                // Xóa màu nền xanh (table-success) của dòng mới thêm sau 5s để đồng bộ với bảng
+                                $("#tableBodyTopics tr:first").removeClass("table-success");
+                            }, 5000);
+
+                        } else {
+                            // In lỗi ra giao diện
+                            $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
+                                .text("Lỗi: " + response.message);
+
+                            // Trả lại nút bấm như cũ
+                            btn.prop("disabled", false);
+                            btn.html(originalBtnText);
+                        }
+                    },
+                    error: function () {
+                        // In lỗi mạng ra giao diện
+                        $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
+                            .text("Lỗi kết nối đến máy chủ. Vui lòng thử lại!");
+
+                        // Trả lại nút bấm như cũ
+                        btn.prop("disabled", false);
+                        btn.html(originalBtnText);
+                    }
+                });
+            });
+        });
+    </script>
+}
