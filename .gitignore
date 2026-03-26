@@ -5,6 +5,8 @@ obj/
 # User files
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
 
 # VS Code
 .vscode/
@@ -21,3 +23,10 @@ appsettings.Development.json
 
 # Secret files
 secrets.json
+
+# Publish
+publish/
+
+# OS files
+.DS_Store
+Thumbs.db

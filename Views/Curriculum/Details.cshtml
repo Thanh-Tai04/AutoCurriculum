@@ -51,7 +51,7 @@
                                     @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
                                     {
                                         <li class="list-group-item d-flex justify-content-between align-items-center px-1">
-                                            <span>📄 <b>Bài @lesson.LessonOrder:</b> @lesson.LessonTitle</span>
+                                            <span>📄 <b>@chapter.ChapterOrder.@lesson.LessonOrder </b> @lesson.LessonTitle</span>
 
                                             <a asp-action="LessonDetails" asp-route-id="@lesson.LessonId" class="btn btn-sm btn-outline-primary rounded-pill">
                                                 Vào học / Soạn bài

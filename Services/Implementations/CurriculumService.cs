@@ -1,6 +1,7 @@
 ﻿using AutoCurriculum.Models;
 using AutoCurriculum.Repositories.Interfaces;
 using AutoCurriculum.Services.Interfaces;
+using Newtonsoft.Json.Linq; // Thêm thư viện này để xử lý JSON gọn gàng hơn
 
 namespace AutoCurriculum.Services.Implementations
 {
@@ -8,6 +9,7 @@ namespace AutoCurriculum.Services.Implementations
     {
         private readonly ITopicRepository _topicRepo;
         private readonly IChapterRepository _chapterRepo;
+        private readonly ISectionRepository _sectionRepo; // BỔ SUNG REPOSITORY CHO SECTION
         private readonly ILessonRepository _lessonRepo;
         private readonly IContentRepository _contentRepo;
         private readonly IWikipediaService _wikiService;
@@ -16,6 +18,7 @@ namespace AutoCurriculum.Services.Implementations
         public CurriculumService(
             ITopicRepository topicRepo,
             IChapterRepository chapterRepo,
+            ISectionRepository sectionRepo, // BỔ SUNG VÀO CONSTRUCTOR
             ILessonRepository lessonRepo,
             IContentRepository contentRepo,
             IWikipediaService wikiService,
@@ -23,6 +26,7 @@ namespace AutoCurriculum.Services.Implementations
         {
             _topicRepo = topicRepo;
             _chapterRepo = chapterRepo;
+            _sectionRepo = sectionRepo;
             _lessonRepo = lessonRepo;
             _contentRepo = contentRepo;
             _wikiService = wikiService;
@@ -37,18 +41,15 @@ namespace AutoCurriculum.Services.Implementations
 
         public async Task<Topic> GenerateTopicAsync(string topicName)
         {
-            // Bước 1: Lấy dữ liệu từ Wikipedia
+            // Bước 1: Lấy dữ liệu từ Wikipedia (Bao gồm cả Sections)
             var (exactTitle, summary, sections) = await _wikiService.GetTopicDataAsync(topicName);
-
-            string wikiDescription = summary;
-            if (sections.Count > 0)
-                wikiDescription += "\n\n📌 [KHUNG CHƯƠNG TỪ WIKIPEDIA]: \n- " + string.Join("\n- ", sections);
 
             // Bước 2: Gọi Gemini sinh Curriculum
             List<dynamic> aiChapters = new();
             try
             {
-                aiChapters = await _geminiService.GenerateCurriculumAsync(wikiDescription);
+                // CẬP NHẬT: Truyền cả summary và mảng sections vào Gemini
+                aiChapters = await _geminiService.GenerateCurriculumAsync(summary, sections);
             }
             catch (Exception ex)
             {
@@ -60,18 +61,18 @@ namespace AutoCurriculum.Services.Implementations
             var newTopic = new Topic
             {
                 TopicName = exactTitle,
-                Description = wikiDescription,
+                Description = summary, // Chỉ lưu summary để DB gọn gàng hơn
                 CreatedAt = DateTime.Now
             };
             _topicRepo.Add(newTopic);
             await _topicRepo.SaveAsync();
 
-            // Bước 4: Tạo Chapters + Lessons từ kết quả AI
+            // Bước 4: Tạo Chapters + Sections + Lessons từ kết quả AI
             int chapterOrder = 1;
             foreach (var item in aiChapters)
             {
-                // Ép kiểu rõ ràng từ dynamic sang JObject để C# không bị "lú"
-                var aiChap = item as Newtonsoft.Json.Linq.JObject;
+                // Ép kiểu về JObject
+                var aiChap = item as JObject;
                 if (aiChap == null) continue;
 
                 string chapterTitle = aiChap["ChapterTitle"]?.ToString();
@@ -84,32 +85,56 @@ namespace AutoCurriculum.Services.Implementations
                     ChapterOrder = chapterOrder++
                 };
                 _chapterRepo.Add(newChapter);
-                await _chapterRepo.SaveAsync(); // Bắt buộc Save để Entity Framework sinh ra ChapterId
+                await _chapterRepo.SaveAsync(); // Bắt buộc Save để lấy ChapterId
 
-                // Lấy mảng bài học và ép kiểu thẳng về JArray
-                var lessonsArray = aiChap["Lessons"] as Newtonsoft.Json.Linq.JArray;
-                if (lessonsArray != null)
+                int lessonOrder = 1;
+                // XỬ LÝ SECTIONS BÊN TRONG CHAPTER
+                var sectionsArray = aiChap["Sections"] as JArray;
+                if (sectionsArray != null)
                 {
-                    int lessonOrder = 1;
-                    foreach (var lesson in lessonsArray)
+                    int sectionOrder = 1;
+                    foreach (var secItem in sectionsArray)
                     {
-                        _lessonRepo.Add(new Lesson
+                        var aiSec = secItem as JObject;
+                        if (aiSec == null) continue;
+
+                        string sectionTitle = aiSec["SectionTitle"]?.ToString();
+                        if (string.IsNullOrEmpty(sectionTitle)) continue;
+
+                        var newSection = new Section
                         {
                             ChapterId = newChapter.ChapterId,
-                            LessonTitle = lesson.ToString(),
-                            LessonOrder = lessonOrder++
-                        });
+                            SectionTitle = sectionTitle,
+                            SectionOrder = sectionOrder++
+                        };
+                        _sectionRepo.Add(newSection);
+                        await _sectionRepo.SaveAsync(); // Bắt buộc Save để lấy SectionId
+
+                        // XỬ LÝ LESSONS BÊN TRONG SECTION
+                        var lessonsArray = aiSec["Lessons"] as JArray;
+                        if (lessonsArray != null)
+                        {
+                            foreach (var lesson in lessonsArray)
+                            {
+                                _lessonRepo.Add(new Lesson
+                                {
+                                    ChapterId = newChapter.ChapterId, // Giữ lại ChapterId để các hàm cũ dễ truy xuất
+                                    SectionId = newSection.SectionId, // Gắn thêm SectionId
+                                    LessonTitle = lesson.ToString(),
+                                    LessonOrder = lessonOrder++
+                                });
+                            }
+                        }
                     }
                 }
             }
 
-            // Lưu toàn bộ Lessons vào Database trong 1 lần gọi
+            // Lưu toàn bộ Lessons vào Database trong 1 lần gọi để tối ưu hiệu suất
             await _lessonRepo.SaveAsync();
 
             return newTopic;
         }
         
-
         // ── CHAPTER ──────────────────────────────────────────────────
 
         public Chapter? GetChapterWithLessons(int id) => _chapterRepo.GetByIdWithLessons(id);

@@ -6,10 +6,39 @@ namespace AutoCurriculum.Controllers
     public class CurriculumController : Controller
     {
         private readonly ICurriculumService _curriculumService;
+        private readonly IWikipediaService _wikiService; // BỔ SUNG
 
-        public CurriculumController(ICurriculumService curriculumService)
+        // BỔ SUNG IWikipediaService vào Constructor
+        public CurriculumController(ICurriculumService curriculumService, IWikipediaService wikiService)
         {
             _curriculumService = curriculumService;
+            _wikiService = wikiService;
+        }
+
+        // ── API KIỂM TRA TRƯỚC (PRE-CHECK) ────────────────────────────
+        
+        [HttpGet]
+        public async Task<IActionResult> PreCheckWiki(string topicName)
+        {
+            if (string.IsNullOrWhiteSpace(topicName))
+                return Json(new { success = false, message = "Vui lòng nhập từ khóa." });
+
+            try
+            {
+                // Chỉ gọi Wikipedia lấy thông tin, KHÔNG gọi AI
+                var (exactTitle, summary, _) = await _wikiService.GetTopicDataAsync(topicName);
+                
+                return Json(new 
+                { 
+                    success = true, 
+                    exactTitle = exactTitle, 
+                    summary = summary 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Không tìm thấy trên Wikipedia: " + ex.Message });
+            }
         }
 
         // ── TOPIC ─────────────────────────────────────────────────────

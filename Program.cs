@@ -21,6 +21,7 @@ builder.Services.AddHttpClient("Wikipedia", client =>
 // ── Repositories ─────────────────────────────────────────────
 builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
+builder.Services.AddScoped<ISectionRepository, SectionRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 
