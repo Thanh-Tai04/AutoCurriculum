@@ -1,0 +1,23 @@
+# Build
+bin/
+obj/
+
+# User files
+*.user
+*.suo
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Environment
+.env
+
+# App settings (chứa API key)
+appsettings.json
+appsettings.Development.json
+
+# Secret files
+secrets.json

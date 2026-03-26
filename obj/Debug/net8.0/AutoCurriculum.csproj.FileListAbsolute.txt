@@ -132,7 +132,6 @@ D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\staticwebassets.buil
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\staticwebassets.build.json.cache
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\staticwebassets.development.json
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\AutoCurr.82A86C78.Up2Date
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\AutoCurriculum.dll
 D:\HK9\DoAn2\AutoCurriculum\AutoCurriculum\obj\Debug\net8.0\refint\AutoCurriculum.dll
