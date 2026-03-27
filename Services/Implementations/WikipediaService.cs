@@ -1,4 +1,5 @@
-﻿using AutoCurriculum.Services.Interfaces;
+﻿using AutoCurriculum.ViewModels;
+using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json.Linq;
 
 namespace AutoCurriculum.Services.Implementations

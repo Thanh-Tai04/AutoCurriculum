@@ -1,4 +1,5 @@
-﻿using AutoCurriculum.Services.Interfaces;
+﻿using AutoCurriculum.ViewModels;
+using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -70,22 +71,29 @@ YÊU CẦU BẮT BUỘC:
 }
 
         // ── Soạn nội dung bài giảng chi tiết ────────────────────────
-        public async Task<string> GenerateLessonContentAsync(string topicName, string chapterTitle, string lessonTitle)
+        // ── Soạn nội dung bài giảng chi tiết ────────────────────────
+        public async Task<string> GenerateLessonContentAsync(string topicName, int chapterOrder, string chapterTitle, int lessonOrder, string lessonTitle)
         {
             if (string.IsNullOrEmpty(ApiKey))
                 throw new InvalidOperationException("Chưa cấu hình Gemini API Key!");
 
+            // Ghép số Chương và số Bài lại. Ví dụ: Chương 1, Bài 1 -> "1.1"
+            string lessonNumber = $"{chapterOrder}.{lessonOrder}";
+
             string prompt = $@"Bạn là một Giảng viên Đại học xuất sắc. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:
 
 - Nằm trong môn học/chủ đề: {topicName}
-- Thuộc chương: {chapterTitle}
-- Tên bài học hiện tại: {lessonTitle}
+- Thuộc Chương {chapterOrder}: {chapterTitle}
+- Tên bài học hiện tại: Bài {lessonNumber} - {lessonTitle}
 
 YÊU CẦU BẮT BUỘC:
-1. Viết một bài giảng sâu sắc, dễ hiểu, văn phong học thuật nhưng gần gũi.
-2. Bắt buộc có ví dụ minh họa thực tế. Nếu là CNTT, bắt buộc có đoạn code mẫu.
-3. Trình bày bằng HTML cơ bản (dùng thẻ <h3>, <p>, <ul>, <li>, <strong>, <code>). KHÔNG dùng markdown.
-4. KHÔNG trả về JSON. Chỉ trả về trực tiếp đoạn nội dung bài học.";
+1. TRÌNH BÀY MỤC LỤC CHUẨN: Sử dụng mã số bài học ({lessonNumber}) làm gốc để đánh số phân cấp cho các nội dung bên trong.
+   - Các mục chính (dùng thẻ <h3>) BẮT BUỘC đánh số: {lessonNumber}.1, {lessonNumber}.2, {lessonNumber}.3...
+   - Các tiểu mục con (dùng thẻ <h4>) BẮT BUỘC đánh số: {lessonNumber}.1.1, {lessonNumber}.1.2...
+2. NỘI DUNG: Viết một bài giảng sâu sắc, dễ hiểu, văn phong học thuật nhưng gần gũi.
+3. THỰC TẾ: Bắt buộc có ví dụ minh họa thực tế. Nếu là CNTT, bắt buộc có đoạn code mẫu.
+4. ĐỊNH DẠNG: Trình bày bằng HTML cơ bản (dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>, <code>). KHÔNG dùng markdown.
+5. KHÔNG trả về JSON. Chỉ trả về trực tiếp đoạn mã HTML nội dung bài học.";
 
             var result = await CallGeminiAsync(prompt);
             return result.Replace("```html", "").Replace("```", "").Trim();

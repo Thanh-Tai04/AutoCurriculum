@@ -1,32 +1,35 @@
-﻿@model AutoCurriculum.Models.Lesson
+﻿@model AutoCurriculum.ViewModels.LessonDetailViewModel
 
 @{
     ViewData["Title"] = "Học bài: " + Model.LessonTitle;
-    // Lấy danh sách nội dung từ Controller truyền sang
-    var contents = ViewBag.Contents as List<AutoCurriculum.Models.Content>;
 }
 
 <div class="container mt-4 mb-5" style="max-width: 900px;">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb bg-light p-3 rounded shadow-sm">
-            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Chapter?.TopicId" class="text-decoration-none fw-bold">@Model.Chapter?.Topic?.TopicName</a></li>
-            <li class="breadcrumb-item text-muted">Chương @Model.Chapter?.ChapterOrder: @Model.Chapter?.ChapterTitle</li>
-            <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Bài @Model.LessonOrder: @Model.LessonTitle</li>
+            <li class="breadcrumb-item">
+                <a asp-action="Details" asp-route-id="@Model.TopicId" class="text-decoration-none fw-bold">@Model.TopicName</a>
+            </li>
+            <li class="breadcrumb-item text-muted">
+                Chương @Model.ChapterOrder: @Model.ChapterTitle
+            </li>
+            <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">
+                @Model.ChapterOrder.@Model.LessonOrder @Model.LessonTitle
+            </li>
         </ol>
     </nav>
 
-    <h1 class="mb-4 text-dark border-bottom pb-3">@Model.LessonTitle</h1>
+    <h1 class="mb-4 text-dark border-bottom pb-3">@Model.ChapterOrder.@Model.LessonOrder @Model.LessonTitle</h1>
 
     <div id="lessonContentArea" class="content-wrapper" style="font-size: 1.1rem; line-height: 1.8;">
-
-        @if (contents != null && contents.Any())
+        
+        @if (Model.HtmlContents != null && Model.HtmlContents.Any())
         {
             // NẾU ĐÃ CÓ NỘI DUNG TRONG DATABASE -> HIỂN THỊ LUÔN
-            @foreach (var item in contents)
+            @foreach (var contentHtml in Model.HtmlContents)
             {
                 <div class="mb-4">
-                    @Html.Raw(item.ContentText)
-                </div>
+                    @Html.Raw(contentHtml) </div>
             }
         }
         else
@@ -35,11 +38,11 @@
             <div id="emptyState" class="text-center py-5 bg-light rounded shadow-sm border">
                 <h4 class="text-muted mb-3">Bài học này chưa có nội dung!</h4>
                 <p class="mb-4">Bạn có muốn hệ thống AI biên soạn chi tiết bài giảng này không?</p>
-
+                
                 <button id="btnGenerateContent" class="btn btn-primary btn-lg px-5 rounded-pill shadow">
                     <i class="bi bi-magic"></i> ✨ Nhờ AI soạn bài giảng này
                 </button>
-
+                
                 <div id="loadingStatus" class="mt-3 text-primary fw-bold" style="display: none;"></div>
             </div>
         }
@@ -51,29 +54,29 @@
         $(document).ready(function () {
             $("#btnGenerateContent").click(function () {
                 var btn = $(this);
-
+                
                 // 1. Hiệu ứng Loading
                 btn.prop("disabled", true);
                 btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Giáo sư AI đang viết bài...');
-
+                
                 $("#loadingStatus").text("Quá trình này có thể mất từ 10 - 20 giây. Vui lòng không làm mới trang...").fadeIn();
 
                 // 2. Gọi Ajax xuống Controller
                 $.ajax({
                     url: '/Curriculum/GenerateLessonContent',
                     type: 'POST',
-                    data: { lessonId: @Model.LessonId },
+                    data: { lessonId: @Model.LessonId }, // Truyền ID Bài học từ ViewModel
                     success: function (response) {
                         if (response.success) {
                             $("#loadingStatus").removeClass("text-primary").addClass("text-success")
                                 .text("🎉 Soạn bài thành công! Đang tải nội dung...");
-
-                            // Load lại trang để hiển thị nội dung vừa lưu vào DB
+                            
+                            // Load lại trang để hiển thị nội dung HTML vừa lưu vào Database
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            // Báo lỗi
+                            // Báo lỗi từ phía Server
                             $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
                                 .text("Lỗi: " + response.message);
                             btn.prop("disabled", false);
@@ -81,6 +84,7 @@
                         }
                     },
                     error: function () {
+                        // Báo lỗi mạng/Timeout
                         $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
                             .text("Lỗi kết nối mạng hoặc Timeout. Vui lòng thử lại!");
                         btn.prop("disabled", false);

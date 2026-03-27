@@ -1,4 +1,5 @@
 ﻿using AutoCurriculum.Models;
+using AutoCurriculum.ViewModels;
 using AutoCurriculum.Repositories.Interfaces;
 using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json.Linq; // Thêm thư viện này để xử lý JSON gọn gàng hơn
@@ -190,7 +191,13 @@ namespace AutoCurriculum.Services.Implementations
             string chapterTitle = lesson.Chapter?.ChapterTitle ?? "Không rõ";
             string lessonTitle = lesson.LessonTitle;
 
-            string htmlContent = await _geminiService.GenerateLessonContentAsync(topicName, chapterTitle, lessonTitle);
+            string htmlContent = await _geminiService.GenerateLessonContentAsync(
+    lesson.Chapter.Topic.TopicName, 
+    lesson.Chapter.ChapterOrder ?? 1, 
+    lesson.Chapter.ChapterTitle, 
+    lesson.LessonOrder ?? 1, 
+    lesson.LessonTitle
+);
 
             _contentRepo.Add(new Content
             {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoCurriculum.Services.Interfaces;
-
+using AutoCurriculum.ViewModels;
 namespace AutoCurriculum.Controllers
 {
     public class CurriculumController : Controller
@@ -44,11 +44,19 @@ namespace AutoCurriculum.Controllers
         // ── TOPIC ─────────────────────────────────────────────────────
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Index()
-        {
-            var topics = _curriculumService.GetAllTopics();
-            return View(topics);
-        }
+        public IActionResult Index() {
+    var topics = _curriculumService.GetAllTopics(); // Lấy từ Database 
+
+    // Chuyển đổi sang ViewModel
+    var viewModel = topics.Select(t => new CurriculumIndexViewModel {
+        TopicId = t.TopicId,
+        TopicName = t.TopicName,
+        CreatedAt = t.CreatedAt,
+        TotalChapters = t.Chapters?.Count ?? 0
+    }).ToList();
+
+    return View(viewModel); // Gửi danh sách ViewModel ra ngoài 
+}
 
         [HttpPost]
         public async Task<IActionResult> Generate(string topicName)
@@ -67,7 +75,7 @@ namespace AutoCurriculum.Controllers
                     {
                         id = topic.TopicId,
                         name = topic.TopicName,
-                        date = topic.CreatedAt?.ToString("dd/MM/yyyy HH:mm"),
+                        createdAt = topic.CreatedAt?.ToString("dd/MM/yyyy HH:mm"), 
                         desc = topic.Description
                     }
                 });
@@ -88,11 +96,28 @@ namespace AutoCurriculum.Controllers
         // ── CHAPTER ───────────────────────────────────────────────────
 
         public IActionResult ChapterDetails(int id)
+{
+    var chapter = _curriculumService.GetChapterWithLessons(id);
+    if (chapter == null) return NotFound();
+
+    // Mapping sang ViewModel chuyên nghiệp
+    var viewModel = new ChapterDetailViewModel
+    {
+        ChapterId = chapter.ChapterId,
+        ChapterTitle = chapter.ChapterTitle,
+        ChapterOrder = chapter.ChapterOrder ?? 0,
+        TopicName = chapter.Topic?.TopicName ?? "N/A",
+        Lessons = chapter.Lessons.Select(l => new LessonItemViewModel
         {
-            var chapter = _curriculumService.GetChapterWithLessons(id);
-            if (chapter == null) return NotFound();
-            return View(chapter);
-        }
+            LessonId = l.LessonId,
+            LessonTitle = l.LessonTitle,
+            // Giả sử bạn có logic kiểm tra nội dung
+            HasContent = l.Contents != null && l.Contents.Any() 
+        }).ToList()
+    };
+
+    return View(viewModel);
+}
 
         [HttpPost]
         public IActionResult CreateChapter(int topicId, string chapterTitle)
@@ -128,11 +153,30 @@ namespace AutoCurriculum.Controllers
 
         public IActionResult LessonDetails(int id)
         {
+            // 1. Lấy dữ liệu gốc từ Database
             var lesson = _curriculumService.GetLessonWithContext(id);
             if (lesson == null) return NotFound();
 
-            ViewBag.Contents = _curriculumService.GetLessonContents(id);
-            return View(lesson);
+            var contents = _curriculumService.GetLessonContents(id);
+
+            // 2. Đóng gói dữ liệu vào Hộp "ViewModel" an toàn và sạch sẽ
+            var viewModel = new AutoCurriculum.ViewModels.LessonDetailViewModel
+            {
+                LessonId = lesson.LessonId,
+                LessonTitle = lesson.LessonTitle,
+                LessonOrder = lesson.LessonOrder ?? 0,
+                ChapterId = lesson.Chapter.ChapterId,
+                ChapterTitle = lesson.Chapter.ChapterTitle,
+                ChapterOrder = lesson.Chapter.ChapterOrder ?? 0,
+                TopicId = lesson.Chapter.Topic.TopicId,
+                TopicName = lesson.Chapter.Topic.TopicName,
+                
+                // Trích xuất lấy đúng cột chữ (ContentText) để nhét vào danh sách
+                HtmlContents = contents.Select(c => c.ContentText).ToList() 
+            };
+
+            // 3. Truyền cái hộp ViewModel này ra View
+            return View(viewModel); 
         }
 
         // ── LESSON CONTENT ────────────────────────────────────────────

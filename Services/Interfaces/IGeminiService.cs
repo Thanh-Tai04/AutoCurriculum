@@ -12,7 +12,7 @@
         /// Gọi Gemini để soạn nội dung bài giảng chi tiết cho một Lesson
         /// Trả về HTML string
         /// </summary>
-        Task<string> GenerateLessonContentAsync(string topicName, string chapterTitle, string lessonTitle);
+        Task<string> GenerateLessonContentAsync(string topicName, int chapterOrder, string chapterTitle, int lessonOrder, string lessonTitle);
 
         Task<string> ClassifyTopicAsync(string topicName);
     }

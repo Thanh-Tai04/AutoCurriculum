@@ -32,6 +32,9 @@ builder.Services.AddScoped<IGeminiService, GeminiService>();
 // ── Business Services ─────────────────────────────────────────
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
 
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
 // ── MVC ───────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
