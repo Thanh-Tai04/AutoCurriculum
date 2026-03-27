@@ -82,7 +82,8 @@ namespace AutoCurriculum.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Lỗi Server: " + ex.Message });
+                // Dùng BadRequest để trình duyệt biết đây là một lỗi
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 

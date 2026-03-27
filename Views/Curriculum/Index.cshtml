@@ -1,6 +1,6 @@
 ﻿@model List<AutoCurriculum.ViewModels.CurriculumIndexViewModel>
 @{
-    ViewData["Title"] = "Danh sách giáo trình";
+    ViewData["Title"] = "WEBSITE";
 }
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -62,6 +62,7 @@
             }
         </tbody>
     </table>
+    console.log(topic);
 </div>
 
 @section Scripts {
@@ -178,7 +179,7 @@
                                 <tr class="table-success">
                                     <td>${t.id}</td>
                                     <td class="fw-bold text-primary">${t.name}</td>
-                                    <td>${t.date}</td>
+                                    <td>${t.createdAt}</td>
                                     <td><span class="badge bg-success">Vừa tạo xong</span></td>
                                     <td>
                                         <a href="/Curriculum/Details/${t.id}" class="btn btn-sm btn-outline-info">Xem chi tiết</a>

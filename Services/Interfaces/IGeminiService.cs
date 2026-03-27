@@ -14,6 +14,6 @@
         /// </summary>
         Task<string> GenerateLessonContentAsync(string topicName, int chapterOrder, string chapterTitle, int lessonOrder, string lessonTitle);
 
-        Task<string> ClassifyTopicAsync(string topicName);
+        // Task<string> ClassifyTopicAsync(string topicName);
     }
 }

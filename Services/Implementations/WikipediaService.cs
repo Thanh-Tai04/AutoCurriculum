@@ -36,7 +36,7 @@ namespace AutoCurriculum.Services.Implementations
 
             var searchJson = JObject.Parse(await searchResponse.Content.ReadAsStringAsync());
             var searchResults = searchJson["query"]?["search"];
-
+            Console.WriteLine(searchResults);
             if (searchResults == null || !searchResults.HasValues)
                 throw new Exception("Không tìm thấy kết quả nào khớp với từ khóa.");
 
@@ -45,7 +45,6 @@ namespace AutoCurriculum.Services.Implementations
             // ── BƯỚC 2: Lấy Summary ──────────────────────────────────
             string formattedTitle = exactTitle.Replace(" ", "_");
             string summaryUrl = $"https://vi.wikipedia.org/api/rest_v1/page/summary/{Uri.EscapeDataString(formattedTitle)}";
-
             var sumResponse = await client.GetAsync(summaryUrl);
             if (sumResponse.IsSuccessStatusCode)
             {
