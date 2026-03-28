@@ -21,7 +21,8 @@ namespace AutoCurriculum.Services.Implementations
         }
 
         // ── Tạo Curriculum (Chapter + Lesson) ───────────────────────
-        public async Task<List<dynamic>> GenerateCurriculumAsync(string wikiDescription, List<string> wikiSections)
+        // Thay đổi kiểu trả về thành Task<AiCurriculumDto> và thêm 2 tham số (topicName, sourceUrl)
+        public async Task<AiCurriculumDto> GenerateCurriculumAsync(string topicName, string sourceUrl, string wikiDescription, List<string> wikiSections)
         {
             if (string.IsNullOrEmpty(ApiKey))
                 throw new InvalidOperationException("Chưa cấu hình Gemini API Key!");
@@ -33,43 +34,47 @@ namespace AutoCurriculum.Services.Implementations
 
             string prompt = $@"Bạn là một Giáo sư Đại học đa ngành. Dựa vào nội dung nền tảng và CẤU TRÚC MỤC LỤC từ Wikipedia sau:
 
-        [TÓM TẮT NỘI DUNG]:
-        {wikiDescription}
+            [CHỦ ĐỀ]: {topicName}
+            https://hacom.vn/nguon-may-tinh: {sourceUrl}
+            [TÓM TẮT NỘI DUNG]:
+            {wikiDescription}
 
-        [MỤC LỤC GỐC TỪ WIKIPEDIA]:
-        - {sectionsText}
+            [MỤC LỤC GỐC TỪ WIKIPEDIA]:
+            - {sectionsText}
 
-        YÊU CẦU BẮT BUỘC:
-        1. ĐÓNG VAI CHUYÊN GIA: Tự động phân tích xem chủ đề trên thuộc lĩnh vực nào (Kinh tế, CNTT, Y học, Lịch sử...).
-        2. NÂNG CẤP HỌC THUẬT: Biến nội dung này thành một GIÁO TRÌNH BÀI BẢN. Sử dụng [MỤC LỤC GỐC TỪ WIKIPEDIA] làm khung sườn chính để chia Chương (Chapter) và Mục con (Section). Tự bổ sung kiến thức chuyên sâu đặc thù của ngành đó.
-        3. CẤU TRÚC: Thiết kế TỐI ĐA 5 chương. Mỗi chương bao gồm các Mục con (Section). Mỗi Mục con chứa 2-4 bài học (Lesson) đi từ cơ bản đến nâng cao.
-        4. QUY TẮC ĐẶT TÊN (RẤT QUAN TRỌNG): TUYỆT ĐỐI KHÔNG thêm các tiền tố như 'Chương 1:', 'Bài 1:', 'Phần 1.1:', '1.', 'a.' vào đầu tên của ChapterTitle, SectionTitle hay Lessons. Chỉ sinh ra phần nội dung tiêu đề thuần túy.
-        5. ĐẦU RA: CHỈ trả về MẢNG JSON, KHÔNG dùng thẻ markdown ```json, không giải thích thêm. BẮT BUỘC phải theo đúng cấu trúc 3 cấp độ (Chapter -> Section -> Lesson) dưới đây:
-        [
-        {{
-            ""ChapterTitle"": ""Tổng quan và Lịch sử phát triển"",
-            ""Sections"": [
+            YÊU CẦU BẮT BUỘC:
+            1. ĐÓNG VAI CHUYÊN GIA: Tự động phân tích xem chủ đề trên thuộc lĩnh vực nào (Kinh tế, CNTT, Y học, Lịch sử...).
+            2. NÂNG CẤP HỌC THUẬT: Biến nội dung này thành một GIÁO TRÌNH BÀI BẢN. Sử dụng [MỤC LỤC GỐC TỪ WIKIPEDIA] làm khung sườn chính để chia Chương (Chapter) và Mục con (Section). Tự bổ sung kiến thức chuyên sâu đặc thù của ngành đó.
+            3. CẤU TRÚC: Thiết kế TỐI ĐA 5 chương. Mỗi chương bao gồm các Mục con (Section). Mỗi Mục con chứa 2-4 bài học (Lesson) đi từ cơ bản đến nâng cao.
+            4. QUY TẮC ĐẶT TÊN (RẤT QUAN TRỌNG): TUYỆT ĐỐI KHÔNG thêm các tiền tố như 'Chương 1:', 'Bài 1:', 'Phần 1.1:', '1.', 'a.' vào đầu tên của ChapterTitle, SectionTitle hay Lessons. Chỉ sinh ra phần nội dung tiêu đề thuần túy.
+            5. ĐẦU RA: CHỈ trả về MỘT OBJECT JSON DUY NHẤT, KHÔNG dùng thẻ markdown ```json, không giải thích thêm. BẮT BUỘC phải theo đúng cấu trúc dưới đây:
             {{
-                ""SectionTitle"": ""Khái niệm cốt lõi"",
-                ""Lessons"": [""Định nghĩa cơ bản"", ""Ứng dụng và tầm quan trọng""]
-            }},
-            {{
-                ""SectionTitle"": ""Kiến trúc và Mô hình"",
-                ""Lessons"": [""Các thành phần chính"", ""Luồng hoạt động thực tế""]
-            }}
-            ]
-        }}
-        ]";
+                ""TopicName"": ""{topicName}"",
+                ""Description"": ""Tóm tắt mục tiêu của giáo trình này (khoảng 2-3 câu)."",
+                ""SourceName"": ""Tên bài viết Wikipedia (Ví dụ: {topicName})"",
+                ""SourceUrl"": ""{sourceUrl}"",
+                ""Chapters"": [
+                {{
+                    ""ChapterTitle"": ""Tổng quan và Lịch sử phát triển"",
+                    ""Sections"": [
+                    {{
+                        ""SectionTitle"": ""Khái niệm cốt lõi"",
+                        ""Lessons"": [""Định nghĩa cơ bản"", ""Ứng dụng và tầm quan trọng""]
+                    }}
+                    ]
+                }}
+                ]
+            }}";
 
             var rawResult = await CallGeminiAsync(prompt);
             
             // Xử lý chuỗi JSON trả về phòng trường hợp AI vẫn nhét thẻ markdown
             var cleaned = rawResult.Replace("```json", "").Replace("```", "").Trim();
 
-            return JsonConvert.DeserializeObject<List<dynamic>>(cleaned)
+            // Deserialize trực tiếp vào class AiCurriculumDto cực kỳ an toàn
+            return JsonConvert.DeserializeObject<AiCurriculumDto>(cleaned)
                 ?? throw new Exception("AI trả về JSON không hợp lệ.");
         }
-
         // ── Soạn nội dung bài giảng chi tiết ────────────────────────
         // ── Soạn nội dung bài giảng chi tiết ────────────────────────
         public async Task<string> GenerateLessonContentAsync(string topicName, int chapterOrder, string chapterTitle, int lessonOrder, string lessonTitle)

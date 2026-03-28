@@ -40,105 +40,86 @@ namespace AutoCurriculum.Services.Implementations
 
         public Topic? GetTopicWithChapters(int id) => _topicRepo.GetByIdWithChapters(id);
 
-        public async Task<Topic> GenerateTopicAsync(string topicName){
-        
+        public async Task<Topic> GenerateTopicAsync(string topicName)
+        {
             // Bước 1: Lấy dữ liệu từ Wikipedia (Bao gồm cả Sections)
             var (exactTitle, summary, sections) = await _wikiService.GetTopicDataAsync(topicName);
 
-            // Bước 2: Gọi Gemini sinh Curriculum
-            List<dynamic> aiChapters = new();
+            // Tự động tạo Link gốc của Wikipedia để lát nữa làm Nguồn tham khảo
+            string wikiUrl = $"https://vi.wikipedia.org/wiki/{Uri.EscapeDataString(exactTitle.Replace(" ", "_"))}";
+
+            // Bước 2: Gọi Gemini sinh Curriculum (Trả về thẳng Object DTO, không cần JObject nữa)
+            AutoCurriculum.ViewModels.AiCurriculumDto aiData;
             try
             {
-                // Truyền cả summary và mảng sections vào Gemini
-                aiChapters = await _geminiService.GenerateCurriculumAsync(summary, sections);
+                // Truyền đủ 4 tham số mới cập nhật vào Gemini
+                aiData = await _geminiService.GenerateCurriculumAsync(exactTitle, wikiUrl, summary, sections);
             }
             catch (Exception ex)
             {
-                // Tạm thời ném thẳng lỗi ra ngoài để Controller bắt được và hiển thị lên UI
                 throw new Exception($"Lấy Wiki thành công nhưng Gemini lỗi: {ex.Message}");
             }
 
-            // Bước 3: Khởi tạo Topic (CHƯA LƯU VỘI - Chỉ tạo Object Graph trên RAM)
-            var newTopic = new Topic
+            // Bước 3: Khởi tạo Nguồn (Source) và Topic (CHƯA LƯU VỘI)
+            var newSource = new Source
             {
-                TopicName = exactTitle,
-                Description = summary, // Chỉ lưu summary để DB gọn gàng hơn
-                CreatedAt = DateTime.Now,
-                Chapters = new List<Chapter>() // Khởi tạo danh sách chứa các Chương
+                SourceName = aiData.SourceName ?? exactTitle,
+                SourceUrl = aiData.SourceUrl ?? wikiUrl,
+                RetrievedDate = DateTime.Now
             };
 
-            // Bước 4: Xây dựng cấu trúc cây (Chapters -> Sections -> Lessons)
-            int chapterOrder = 1;
-            foreach (var item in aiChapters)
+            var newTopic = new Topic
             {
-                // Ép kiểu về JObject
-                var aiChap = item as JObject;
-                if (aiChap == null) continue;
+                TopicName = aiData.TopicName ?? exactTitle,
+                Description = summary, // Chỉ lưu summary để DB gọn gàng hơn
+                Source = newSource,    // GẮN NGUỒN VÀO ĐÂY: Entity Framework sẽ tự động lưu Source trước để lấy ID
+                CreatedAt = DateTime.Now,
+                Chapters = new List<Chapter>() 
+            };
 
-                string chapterTitle = aiChap["ChapterTitle"]?.ToString();
-                if (string.IsNullOrEmpty(chapterTitle)) continue;
-
-                // Tạo Chapter (KHÔNG CẦN gán TopicId, KHÔNG gọi Save)
+            // Bước 4: Xây dựng cấu trúc cây (Mọi thứ giờ đây đã được strongly-typed nhờ DTO)
+            int chapterOrder = 1;
+            foreach (var chapDto in aiData.Chapters)
+            {
                 var newChapter = new Chapter
                 {
-                    ChapterTitle = chapterTitle,
+                    ChapterTitle = chapDto.ChapterTitle,
                     ChapterOrder = chapterOrder++,
                     CreatedAt = DateTime.Now,
-                    Sections = new List<Section>() // Khởi tạo danh sách chứa các Phần
+                    Sections = new List<Section>()
                 };
 
-                int lessonOrder = 1; // Khởi tạo thứ tự Lesson ở cấp Chapter để tăng dần liên tục
+                int sectionOrder = 1;
+                int lessonOrder = 1; // Giữ thứ tự Lesson tăng dần xuyên suốt trong 1 Chapter
 
-                // XỬ LÝ SECTIONS BÊN TRONG CHAPTER
-                var sectionsArray = aiChap["Sections"] as JArray;
-                if (sectionsArray != null)
+                foreach (var secDto in chapDto.Sections)
                 {
-                    int sectionOrder = 1;
-                    foreach (var secItem in sectionsArray)
+                    var newSection = new Section
                     {
-                        var aiSec = secItem as JObject;
-                        if (aiSec == null) continue;
+                        SectionTitle = secDto.SectionTitle,
+                        SectionOrder = sectionOrder++,
+                        Lessons = new List<Lesson>()
+                    };
 
-                        string sectionTitle = aiSec["SectionTitle"]?.ToString();
-                        if (string.IsNullOrEmpty(sectionTitle)) continue;
-
-                        // Tạo Section (KHÔNG CẦN gán ChapterId, KHÔNG gọi Save)
-                        var newSection = new Section
+                    foreach (var lessonTitle in secDto.Lessons)
+                    {
+                        newSection.Lessons.Add(new Lesson
                         {
-                            SectionTitle = sectionTitle,
-                            SectionOrder = sectionOrder++,
-                            Lessons = new List<Lesson>() // Khởi tạo danh sách chứa các Bài học
-                        };
-
-                        // XỬ LÝ LESSONS BÊN TRONG SECTION
-                        var lessonsArray = aiSec["Lessons"] as JArray;
-                        if (lessonsArray != null)
-                        {
-                            foreach (var lesson in lessonsArray)
-                            {
-                                // Tạo Lesson
-                                newSection.Lessons.Add(new Lesson
-                                {
-                                    LessonTitle = lesson.ToString(),
-                                    LessonOrder = lessonOrder++,
-                                    // QUAN TRỌNG: Map thẳng vào object newChapter để Entity Framework
-                                    // tự động hiểu và gắn ChapterId sau khi Save
-                                    Chapter = newChapter 
-                                });
-                            }
-                        }
-
-                        // Gắn Section vào Chapter
-                        newChapter.Sections.Add(newSection);
+                            LessonTitle = lessonTitle,
+                            LessonOrder = lessonOrder++,
+                            Chapter = newChapter // Map thẳng vào Chapter giống như logic trước đây của bạn
+                        });
                     }
+
+                    newChapter.Sections.Add(newSection);
                 }
 
-                // Gắn Chapter vào Topic
                 newTopic.Chapters.Add(newChapter);
             }
 
             // Bước 5: LƯU TẤT CẢ VÀO DATABASE TRONG 1 LẦN DUY NHẤT
-            // Nhờ có Transaction, thao tác này diễn ra cực kỳ nhanh và an toàn (không bị rác dữ liệu nếu có lỗi giữa chừng)
+            // Phép màu của Entity Framework: Nó sẽ tự động INSERT bảng Source -> lấy SourceId gắn cho Topic 
+            // -> INSERT Topic -> lấy TopicId gắn cho Chapter... và cứ thế đến Lesson.
             _topicRepo.Add(newTopic);
             await _topicRepo.SaveAsync();
 

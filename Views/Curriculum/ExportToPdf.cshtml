@@ -65,14 +65,16 @@
         {
             @foreach (var chapter in Model.Chapters.OrderBy(c => c.ChapterOrder))
             {
-                <h4 class="text-dark">Chương @chapter.ChapterOrder: @chapter.ChapterTitle</h4>
+                <h3 class="fw-bold text-primary mt-4 mb-3 border-bottom pb-2">
+                    Chương @chapter.ChapterOrder: @chapter.ChapterTitle
+                </h3>
                 @if (chapter.Lessons != null)
                 {
                     <ul class="list-unstyled ms-4">
                         @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
                         {
                             <li class="mb-2 fs-5">
-                                <b>Bài @chapter.ChapterOrder.@lesson.LessonOrder:</b> @lesson.LessonTitle
+                                <b>@chapter.ChapterOrder.@lesson.LessonOrder:</b> @lesson.LessonTitle
                             </li>
                         }
                     </ul>
@@ -89,12 +91,13 @@
                 <div class="chapter-container">
                     @if (chapter.Lessons != null)
                     {
+                        <h3 class="text-center text-uppercase fw-bold text-dark mt-4 mb-4">
+                            Chương @chapter.ChapterOrder: @chapter.ChapterTitle
+                        </h3>
                         @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
                         {
                             <div class="lesson-break pt-4">
-                                <h3 class="text-center text-uppercase fw-bold text-dark mt-4 mb-4">
-                                    Chương @chapter.ChapterOrder: @chapter.ChapterTitle
-                                </h3>
+                                
                                 
                                 @if (lesson.Contents != null && lesson.Contents.Any())
                                 {
@@ -105,6 +108,7 @@
                                 }
                                 else
                                 {
+                                    <h4>@chapter.ChapterOrder.@lesson.LessonOrder @lesson.LessonTitle</h4>
                                     <p class="text-muted fst-italic">Nội dung bài học đang được biên soạn...</p>
                                 }
                             </div>
