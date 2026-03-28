@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoCurriculum.Services.Interfaces;
 using AutoCurriculum.ViewModels;
+using Rotativa.AspNetCore;
 namespace AutoCurriculum.Controllers
 {
     public class CurriculumController : Controller
@@ -41,22 +42,56 @@ namespace AutoCurriculum.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult Preview(int id)
+        {
+            // Lấy dữ liệu y hệt như lúc in PDF
+            var topic = _curriculumService.GetTopicWithChapters(id);
+            if (topic == null) return NotFound();
+
+            // ĐIỂM KHÁC BIỆT: Trả về View HTML bình thường thay vì gọi ViewAsPdf của Rotativa
+            return View("ExportToPdf", topic);
+        }
+
+        [HttpGet]
+        public IActionResult ExportToPdf(int id)
+        {
+            var topic = _curriculumService.GetTopicWithChapters(id);
+            if (topic == null) return NotFound();
+
+            string cleanFileName = AutoCurriculum.Helpers.StringHelper.ConvertToSlug(topic.TopicName);
+
+            return new ViewAsPdf("ExportToPdf", topic)
+            {
+                FileName = $"GiaoTrinh_{cleanFileName}.pdf", 
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                
+                // 1. CĂN LỀ CHUẨN DNC: Trên 20mm, Phải 20mm, Dưới 20mm, Trái 30mm (để đóng gáy sách)
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(20, 20, 20, 30),
+
+                // 2. ĐÁNH SỐ TRANG: Thêm lệnh --footer-center "[page]" vào CustomSwitches
+                CustomSwitches = "--disable-smart-shrinking --print-media-type " +
+                                "--footer-center \"[page]\" --footer-font-size \"13\" --footer-font-name \"Times New Roman\""
+            };
+        }
+
         // ── TOPIC ─────────────────────────────────────────────────────
 
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Index() {
-    var topics = _curriculumService.GetAllTopics(); // Lấy từ Database 
+            var topics = _curriculumService.GetAllTopics(); // Lấy từ Database 
 
-    // Chuyển đổi sang ViewModel
-    var viewModel = topics.Select(t => new CurriculumIndexViewModel {
-        TopicId = t.TopicId,
-        TopicName = t.TopicName,
-        CreatedAt = t.CreatedAt,
-        TotalChapters = t.Chapters?.Count ?? 0
-    }).ToList();
+            // Chuyển đổi sang ViewModel
+            var viewModel = topics.Select(t => new CurriculumIndexViewModel {
+                TopicId = t.TopicId,
+                TopicName = t.TopicName,
+                CreatedAt = t.CreatedAt,
+                TotalChapters = t.Chapters?.Count ?? 0
+            }).ToList();
 
-    return View(viewModel); // Gửi danh sách ViewModel ra ngoài 
-}
+            return View(viewModel); // Gửi danh sách ViewModel ra ngoài 
+        }
 
         [HttpPost]
         public async Task<IActionResult> Generate(string topicName)
@@ -94,31 +129,44 @@ namespace AutoCurriculum.Controllers
             return View(topic);
         }
 
+        [HttpPost]
+        public IActionResult DeleteTopic(int id)
+        {
+            try
+            {
+                _curriculumService.DeleteTopic(id);
+                return Json(new { success = true, message = "Đã xóa thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi xóa: " + ex.Message });
+            }
+        }
         // ── CHAPTER ───────────────────────────────────────────────────
 
         public IActionResult ChapterDetails(int id)
-{
-    var chapter = _curriculumService.GetChapterWithLessons(id);
-    if (chapter == null) return NotFound();
-
-    // Mapping sang ViewModel chuyên nghiệp
-    var viewModel = new ChapterDetailViewModel
-    {
-        ChapterId = chapter.ChapterId,
-        ChapterTitle = chapter.ChapterTitle,
-        ChapterOrder = chapter.ChapterOrder ?? 0,
-        TopicName = chapter.Topic?.TopicName ?? "N/A",
-        Lessons = chapter.Lessons.Select(l => new LessonItemViewModel
         {
-            LessonId = l.LessonId,
-            LessonTitle = l.LessonTitle,
-            // Giả sử bạn có logic kiểm tra nội dung
-            HasContent = l.Contents != null && l.Contents.Any() 
-        }).ToList()
-    };
+            var chapter = _curriculumService.GetChapterWithLessons(id);
+            if (chapter == null) return NotFound();
 
-    return View(viewModel);
-}
+            // Mapping sang ViewModel chuyên nghiệp
+            var viewModel = new ChapterDetailViewModel
+            {
+                ChapterId = chapter.ChapterId,
+                ChapterTitle = chapter.ChapterTitle,
+                ChapterOrder = chapter.ChapterOrder ?? 0,
+                TopicName = chapter.Topic?.TopicName ?? "N/A",
+                Lessons = chapter.Lessons.Select(l => new LessonItemViewModel
+                {
+                    LessonId = l.LessonId,
+                    LessonTitle = l.LessonTitle,
+                    // Giả sử bạn có logic kiểm tra nội dung
+                    HasContent = l.Contents != null && l.Contents.Any() 
+                }).ToList()
+            };
+
+            return View(viewModel);
+        }
 
         [HttpPost]
         public IActionResult CreateChapter(int topicId, string chapterTitle)
@@ -149,7 +197,18 @@ namespace AutoCurriculum.Controllers
             if (!string.IsNullOrEmpty(lessonTitle))
                 _curriculumService.CreateLesson(chapterId, lessonTitle);
 
-            return RedirectToAction("ChapterDetails", new { id = chapterId });
+            // 1. Tìm thông tin Chương (Chapter) để lấy được mã Giáo trình (TopicId)
+            // Tùy theo cách bạn viết Service/Repository, hãy gọi hàm tương ứng. 
+            // Ví dụ:
+            var chapter = _curriculumService.GetChapterWithLessons(chapterId);
+            if (chapter != null)
+            {
+                // 2. Trả người dùng về ĐÚNG trang Chi tiết Giáo trình
+                return RedirectToAction("Details", new { id = chapter.TopicId });
+            }
+
+            // Phòng hờ nếu lỗi không tìm thấy chương thì về trang danh sách
+            return RedirectToAction("Index");
         }
 
         public IActionResult LessonDetails(int id)

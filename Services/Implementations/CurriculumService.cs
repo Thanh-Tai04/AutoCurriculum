@@ -144,6 +144,16 @@ namespace AutoCurriculum.Services.Implementations
 
             return newTopic;
         }
+
+        public void DeleteTopic(int topicId)
+        {
+            var topic = _topicRepo.GetByIdWithChapters(topicId);
+            if (topic != null)
+            {
+                _topicRepo.Delete(topic);
+                _topicRepo.Save(); // EF Core sẽ tự động xóa các Chapter, Lesson con nếu bạn cấu hình Cascade Delete
+            }
+        }
         
         // ── CHAPTER ──────────────────────────────────────────────────
 

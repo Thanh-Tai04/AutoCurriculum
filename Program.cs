@@ -48,6 +48,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+// ĐĂNG KÝ ROTATIVA (Bắt buộc phải nằm dưới UseStaticFiles)
+Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
+
 app.UseRouting();
 app.UseAuthorization();
 

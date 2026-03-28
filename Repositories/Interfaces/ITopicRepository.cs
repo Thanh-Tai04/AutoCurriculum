@@ -8,6 +8,7 @@ namespace AutoCurriculum.Repositories.Interfaces
         Topic? GetByIdWithChapters(int id);
         void Add(Topic topic);
         void Save();
+        void Delete(Topic topic);
         Task SaveAsync();
     }
 }

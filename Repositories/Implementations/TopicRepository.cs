@@ -25,9 +25,11 @@ namespace AutoCurriculum.Repositories.Implementations
         public Topic? GetByIdWithChapters(int id)
         {
             return _context.Topics
-                           .Include(t => t.Chapters)
-                               .ThenInclude(c => c.Lessons) // Lệnh này giúp tải thêm Bài học cho từng Chương
-                           .FirstOrDefault(t => t.TopicId == id);
+                    .Include(t => t.Source)
+                        .Include(t => t.Chapters)
+                            .ThenInclude(c => c.Lessons)
+                                .ThenInclude(l => l.Contents) // PHẢI CÓ DÒNG NÀY THÌ MỚI IN RA CHỮ ĐƯỢC
+                        .FirstOrDefault(t => t.TopicId == id);
         }
 
         public void Add(Topic topic) => _context.Topics.Add(topic);
@@ -35,5 +37,10 @@ namespace AutoCurriculum.Repositories.Implementations
         public void Save() => _context.SaveChanges();
 
         public async Task SaveAsync() => await _context.SaveChangesAsync();
+
+        public void Delete(Topic topic)
+        {
+            _context.Topics.Remove(topic);
+        }
     }
 }

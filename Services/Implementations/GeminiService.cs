@@ -80,20 +80,25 @@ namespace AutoCurriculum.Services.Implementations
             // Ghép số Chương và số Bài lại. Ví dụ: Chương 1, Bài 1 -> "1.1"
             string lessonNumber = $"{chapterOrder}.{lessonOrder}";
 
-            string prompt = $@"Bạn là một Giảng viên Đại học xuất sắc. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:
+            string prompt = $@"Bạn là một Giảng viên Đại học biên soạn tài liệu giáo trình. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:
 
-            - Nằm trong môn học/chủ đề: {topicName}
-            - Thuộc Chương {chapterOrder}: {chapterTitle}
-            - Tên bài học hiện tại: Bài {lessonNumber} - {lessonTitle}
+                - Nằm trong môn học/chủ đề: {topicName}
+                - Thuộc Chương {chapterOrder}: {chapterTitle}
+                - Tên bài học hiện tại: Bài {lessonNumber} - {lessonTitle}
 
-            YÊU CẦU BẮT BUỘC:
-            1. TRÌNH BÀY MỤC LỤC CHUẨN: Sử dụng mã số bài học ({lessonNumber}) làm gốc để đánh số phân cấp cho các nội dung bên trong.
-            - Các mục chính (dùng thẻ <h3>) BẮT BUỘC đánh số: {lessonNumber}.1, {lessonNumber}.2, {lessonNumber}.3...
-            - Các tiểu mục con (dùng thẻ <h4>) BẮT BUỘC đánh số: {lessonNumber}.1.1, {lessonNumber}.1.2...
-            2. NỘI DUNG: Viết một bài giảng sâu sắc, dễ hiểu, văn phong học thuật nhưng gần gũi.
-            3. THỰC TẾ: Bắt buộc có ví dụ minh họa thực tế. Nếu là CNTT, bắt buộc có đoạn code mẫu.
-            4. ĐỊNH DẠNG: Trình bày bằng HTML cơ bản (dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>, <code>). KHÔNG dùng markdown.
-            5. KHÔNG trả về JSON. Chỉ trả về trực tiếp đoạn mã HTML nội dung bài học.";
+                YÊU CẦU BẮT BUỘC:
+                1. TRÌNH BÀY MỤC LỤC CHUẨN: Sử dụng mã số bài học ({lessonNumber}) làm gốc để đánh số phân cấp cho các nội dung bên trong.
+                - Các mục chính (dùng thẻ <h3>) BẮT BUỘC đánh số: {lessonNumber}.1, {lessonNumber}.2...
+                - Các tiểu mục con (dùng thẻ <h4>) BẮT BUỘC đánh số: {lessonNumber}.1.1, {lessonNumber}.1.2...
+                2. NỘI DUNG: Viết một bài giảng sâu sắc, dễ hiểu, văn phong học thuật.
+                3. THỰC TẾ: Bắt buộc có ví dụ minh họa thực tế. Nếu là CNTT, bắt buộc có đoạn code mẫu.
+                4. ĐỊNH DẠNG: Trình bày bằng HTML cơ bản (dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>, <code>). KHÔNG dùng markdown.
+                5. KHÔNG trả về JSON. Chỉ trả về trực tiếp đoạn mã HTML nội dung bài học.
+
+                // --- 2 ĐIỀU KIỆN MỚI THÊM VÀO ---
+                6. TUYỆT ĐỐI KHÔNG CHÀO HỎI: Không được viết các câu mở đầu giao tiếp như 'Chào các em', 'Hôm nay chúng ta sẽ học...', 'Để giúp các em có cái nhìn...'. 
+                7. VÀO THẲNG VẤN ĐỀ: Đoạn HTML trả về BẮT BUỘC phải bắt đầu ngay lập tức bằng thẻ <h3> của mục {lessonNumber}.1. Không có bất kỳ đoạn văn <p> nào nằm trước thẻ <h3> đầu tiên này.
+                ";
 
             var result = await CallGeminiAsync(prompt);
             return result.Replace("```html", "").Replace("```", "").Trim();

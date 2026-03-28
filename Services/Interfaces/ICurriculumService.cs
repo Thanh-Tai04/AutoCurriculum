@@ -15,6 +15,7 @@ namespace AutoCurriculum.Services.Interfaces
         Chapter? GetChapterWithLessons(int id);
         void CreateChapter(int topicId, string chapterTitle);
         void DeleteChapter(int chapterId);
+        void DeleteTopic(int topicId);
 
         // ── Lesson ────────────────────────────────────────────────────
         void CreateLesson(int chapterId, string lessonTitle);
