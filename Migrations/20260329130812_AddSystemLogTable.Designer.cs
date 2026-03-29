@@ -4,6 +4,7 @@ using AutoCurriculum.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoCurriculum.Migrations
 {
     [DbContext(typeof(AutoCurriculumDbContext))]
-    partial class AutoCurriculumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329130812_AddSystemLogTable")]
+    partial class AddSystemLogTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,9 +313,6 @@ namespace AutoCurriculum.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("ExecutionTimeMs")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Keyword")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -320,6 +320,9 @@ namespace AutoCurriculum.Migrations
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("RuntimeMs")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Status")
                         .IsRequired()

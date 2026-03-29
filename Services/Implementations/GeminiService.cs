@@ -3,6 +3,8 @@ using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Diagnostics; // Thêm để dùng Stopwatch
+using AutoCurriculum.Models; // Thêm để dùng SystemLog
 
 namespace AutoCurriculum.Services.Implementations
 {
@@ -10,29 +12,28 @@ namespace AutoCurriculum.Services.Implementations
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly AutoCurriculumDbContext _context; // Thêm DbContext
 
         private string ApiKey => _configuration["GeminiSettings:ApiKey"] ?? "";
         private const string GeminiModel = "gemini-2.5-flash";
 
-        public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, AutoCurriculumDbContext context)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _context = context; // Inject DbContext
         }
 
-        // ── Tạo Curriculum (Chapter + Lesson) ───────────────────────
-        // Thay đổi kiểu trả về thành Task<AiCurriculumDto> và thêm 2 tham số (topicName, sourceUrl)
         public async Task<AiCurriculumDto> GenerateCurriculumAsync(string topicName, string sourceUrl, string wikiDescription, List<string> wikiSections)
         {
             if (string.IsNullOrEmpty(ApiKey))
                 throw new InvalidOperationException("Chưa cấu hình Gemini API Key!");
 
-            // Xử lý danh sách Section từ Wikipedia thành chuỗi để nhét vào Prompt
             string sectionsText = (wikiSections != null && wikiSections.Any()) 
                 ? string.Join("\n- ", wikiSections) 
                 : "Không có mục lục tham khảo, hãy tự suy luận cấu trúc phù hợp.";
 
-            string prompt = $@"Bạn là một Giáo sư Đại học đa ngành. Dựa vào nội dung nền tảng và CẤU TRÚC MỤC LỤC từ Wikipedia sau:
+           string prompt = $@"Bạn là một Giáo sư Đại học đa ngành. Dựa vào nội dung nền tảng và CẤU TRÚC MỤC LỤC từ Wikipedia sau:
 
             [CHỦ ĐỀ]: {topicName}
             https://hacom.vn/nguon-may-tinh: {sourceUrl}
@@ -66,23 +67,20 @@ namespace AutoCurriculum.Services.Implementations
                 ]
             }}";
 
-            var rawResult = await CallGeminiAsync(prompt);
+            // Truyền thêm topicName để ghi log
+            var rawResult = await CallGeminiAsync(prompt, topicName, "Generate_Curriculum");
             
-            // Xử lý chuỗi JSON trả về phòng trường hợp AI vẫn nhét thẻ markdown
             var cleaned = rawResult.Replace("```json", "").Replace("```", "").Trim();
 
-            // Deserialize trực tiếp vào class AiCurriculumDto cực kỳ an toàn
             return JsonConvert.DeserializeObject<AiCurriculumDto>(cleaned)
                 ?? throw new Exception("AI trả về JSON không hợp lệ.");
         }
-        // ── Soạn nội dung bài giảng chi tiết ────────────────────────
-        // ── Soạn nội dung bài giảng chi tiết ────────────────────────
+
         public async Task<string> GenerateLessonContentAsync(string topicName, int chapterOrder, string chapterTitle, int lessonOrder, string lessonTitle)
         {
             if (string.IsNullOrEmpty(ApiKey))
                 throw new InvalidOperationException("Chưa cấu hình Gemini API Key!");
 
-            // Ghép số Chương và số Bài lại. Ví dụ: Chương 1, Bài 1 -> "1.1"
             string lessonNumber = $"{chapterOrder}.{lessonOrder}";
 
             string prompt = $@"Bạn là một Giảng viên Đại học biên soạn tài liệu giáo trình. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:
@@ -104,86 +102,62 @@ namespace AutoCurriculum.Services.Implementations
                 6. TUYỆT ĐỐI KHÔNG CHÀO HỎI: Không được viết các câu mở đầu giao tiếp như 'Chào các em', 'Hôm nay chúng ta sẽ học...', 'Để giúp các em có cái nhìn...'. 
                 7. VÀO THẲNG VẤN ĐỀ: Đoạn HTML trả về BẮT BUỘC phải bắt đầu ngay lập tức bằng thẻ <h3> của mục {lessonNumber}.1. Không có bất kỳ đoạn văn <p> nào nằm trước thẻ <h3> đầu tiên này.
                 ";
-
-            var result = await CallGeminiAsync(prompt);
+            // Truyền thêm lessonTitle để ghi log
+            var result = await CallGeminiAsync(prompt, lessonTitle, "Generate_Lesson");
             return result.Replace("```html", "").Replace("```", "").Trim();
         }
 
-        // ── Private helper: gọi Gemini API ──────────────────────────
-        private async Task<string> CallGeminiAsync(string prompt)
+        private async Task<string> CallGeminiAsync(string prompt, string keyword, string actionName)
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{GeminiModel}:generateContent?key={ApiKey}";
+            var watch = Stopwatch.StartNew();
+            var log = new SystemLog { Action = actionName, Keyword = keyword, CreatedAt = DateTime.Now };
 
-            var requestBody = new
+            try 
             {
-                contents = new[]
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{GeminiModel}:generateContent?key={ApiKey}";
+                var requestBody = new { contents = new[] { new { parts = new[] { new { text = prompt } } } } };
+
+                using var client = _httpClientFactory.CreateClient();
+                int maxRetries = 3;
+                int delayMs = 2500;
+
+                for (int i = 0; i < maxRetries; i++)
                 {
-                    new { parts = new[] { new { text = prompt } } }
+                    var httpContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync(url, httpContent);
+                    var raw = await response.Content.ReadAsStringAsync();
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = JObject.Parse(raw);
+                        log.Status = "Success";
+                        log.Message = "Gemini responded successfully.";
+                        return json["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString()
+                               ?? throw new Exception("Gemini trả về kết quả rỗng.");
+                    }
+
+                    if ((int)response.StatusCode == 503 && i < maxRetries - 1)
+                    {
+                        await Task.Delay(delayMs);
+                        continue;
+                    }
+                    throw new Exception($"Lỗi {response.StatusCode}: {raw}");
                 }
-            };
-
-            
-
-            using var client = _httpClientFactory.CreateClient();
-
-            int maxRetries = 3; // Thử tối đa 3 lần
-            int delayMs = 2500; // Nghỉ 2.5 giây giữa mỗi lần thử
-
-            for (int i = 0; i < maxRetries; i++)
-            {
-                var httpContent = new StringContent(
-                JsonConvert.SerializeObject(requestBody),
-                Encoding.UTF8,
-                "application/json"
-            );
-
-                var response = await client.PostAsync(url, httpContent);
-                var raw = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = JObject.Parse(raw);
-                    return json["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString()
-                           ?? throw new Exception("Gemini trả về kết quả rỗng.");
-                }
-
-                // Nếu gặp lỗi 503 (Quá tải) VÀ chưa hết số lần thử -> Đợi rồi thử lại
-                if ((int)response.StatusCode == 503 && i < maxRetries - 1)
-                {
-                    await Task.Delay(delayMs);
-                    continue;
-                }
-
-                // Nếu gặp lỗi khác hoặc đã hết quyền thử -> Văng lỗi ra ngoài
-                throw new Exception($"Lỗi {response.StatusCode}: {raw}");
+                return string.Empty;
             }
-
-            return string.Empty;
+            catch (Exception ex)
+            {
+                log.Status = "Error";
+                log.Message = ex.Message;
+                throw;
+            }
+            finally
+            {
+                watch.Stop();
+                log.ExecutionTimeMs = watch.ElapsedMilliseconds;
+                _context.SystemLogs.Add(log);
+                await _context.SaveChangesAsync();
+            }
         }
-
-        // public async Task<string> ClassifyTopicAsync(string topicName)
-        // {
-        //     if (string.IsNullOrEmpty(ApiKey))
-        //         throw new InvalidOperationException("Chưa cấu hình Gemini API Key!");
-
-        //     string prompt = $@"Bạn là hệ thống kiểm duyệt tự động cho một ứng dụng tạo giáo trình học tập.
-        //     Hãy phân loại từ khóa đầu vào: ""{topicName}"" thành đúng 1 trong 3 nhãn sau (CHỈ trả về tên nhãn, không giải thích):
-
-        //     1. BLOCK: Nội dung 18+, bạo lực, chế tạo vũ khí, hack/crack, lừa đảo, tán gái, game hack, spam, hoặc các ký tự vô nghĩa (như asdfgh, xyz123).
-        //     2. WARN: Nội dung không vi phạm pháp luật nhưng hơi lệch khỏi mục đích học tập/kỹ năng chuẩn (ví dụ: cách kiếm tiền nhanh, cờ bạc nhẹ, mẹo vặt mảng xám).
-        //     3. ALLOW: Các chủ đề học thuật, lập trình, ngôn ngữ, thiết kế, kỹ năng sống, kỹ năng mềm (như edit video, chơi guitar), nghề nghiệp.
-
-        //     Nhãn kết quả:";
-
-        //     // Tận dụng lại hàm CallGeminiAsync đã viết sẵn
-        //     var rawResult = await CallGeminiAsync(prompt);
-            
-        //     // Chuẩn hóa kết quả trả về
-        //     string result = rawResult.Trim().ToUpper();
-            
-        //     if (result.Contains("BLOCK")) return "BLOCK";
-        //     if (result.Contains("WARN")) return "WARN";
-        //     return "ALLOW"; // Mặc định cho phép nếu AI không rõ ràng
-        // }
     }
 }

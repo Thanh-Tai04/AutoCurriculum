@@ -1,4 +1,3 @@
-using AutoCurriculum.Models; // Thay bằng thư mục chứa DbContext của bạn
 using AutoCurriculum.Models;
 using AutoCurriculum.Repositories.Interfaces;
 using System.Threading.Tasks;

@@ -25,6 +25,8 @@ public partial class AutoCurriculumDbContext : IdentityDbContext<ApplicationUser
     public virtual DbSet<Section> Sections { get; set; }
     public virtual DbSet<Source> Sources { get; set; }
     public virtual DbSet<Topic> Topics { get; set; }
+    public DbSet<SystemLog> SystemLogs { get; set; }
+    
     
     // ĐÃ XÓA: Bảng Users cũ. Từ nay Identity sẽ lo phần này.
 

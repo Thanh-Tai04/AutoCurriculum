@@ -60,6 +60,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -71,6 +73,16 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Route dành cho Area (Admin)
+app.MapControllerRoute(
+    name: "MyArea",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+// Route mặc định cho người dùng (Client)
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+    
 // ĐĂNG KÝ ROTATIVA (Bắt buộc phải nằm dưới UseStaticFiles)
 Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 
