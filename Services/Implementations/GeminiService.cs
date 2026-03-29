@@ -1,4 +1,4 @@
-﻿using AutoCurriculum.ViewModels;
+﻿using AutoCurriculum.DTOs;
 using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

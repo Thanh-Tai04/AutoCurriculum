@@ -1,0 +1,151 @@
+@model AutoCurriculum.Models.Topic
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Giáo trình @Model.TopicName</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        /* Ép Font Times New Roman, Size 13pt, Dãn dòng 1.5, Canh đều 2 bên */
+        body { 
+            font-family: "Times New Roman", Times, serif; 
+            font-size: 13pt; 
+            line-height: 1.5; 
+            text-align: justify;
+            background-color: #fff; 
+            color: #000; 
+        }
+        
+        .cover-page { 
+            text-align: center; 
+            padding-top: 30%; 
+            page-break-after: always; 
+        }
+        
+        h2, h3, h4 { 
+            page-break-after: avoid; 
+            font-weight: bold;
+            margin-top: 20px; 
+            margin-bottom: 10px;
+        }
+        
+        /* Chống cắt dòng vô duyên */
+        p, ul, li { page-break-inside: avoid; }
+        
+        pre, code {
+            white-space: pre-wrap !important; 
+            word-break: break-word !important;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-family: Consolas, monospace; /* Code thì giữ font Consolas cho dễ đọc */
+            font-size: 11pt;
+        }
+
+        .toc-page { page-break-after: always; padding-top: 20px; }
+        .lesson-break { page-break-before: always; } 
+    </style>
+</head>
+<body>
+
+    <div class="cover-page">
+        <h1 class="display-3 fw-bold text-primary">GIÁO TRÌNH VÀ TÀI LIỆU</h1>
+        <h2 class="display-5 text-dark mt-4">@Model.TopicName.ToUpper()</h2>
+        <p class="text-muted mt-5 fs-5">Biên soạn bởi: Hệ thống AutoCurriculum</p>
+        <p class="text-muted">Ngày xuất bản: @DateTime.Now.ToString("dd/MM/yyyy")</p>
+    </div>
+
+    <div class="toc-page">
+        <h2 class="text-center mb-5 text-uppercase fw-bold text-dark">Mục lục</h2>
+        @if (Model.Chapters != null)
+        {
+            @foreach (var chapter in Model.Chapters.OrderBy(c => c.ChapterOrder))
+            {
+                <h3 class="fw-bold text-primary mt-4 mb-3 border-bottom pb-2">
+                    Chương @chapter.ChapterOrder: @chapter.ChapterTitle
+                </h3>
+                @if (chapter.Lessons != null)
+                {
+                    <ul class="list-unstyled ms-4">
+                        @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
+                        {
+                            <li class="mb-2 fs-5">
+                                <b>@chapter.ChapterOrder.@lesson.LessonOrder:</b> @lesson.LessonTitle
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+        }
+    </div>
+
+    <div class="book-content">
+        @if (Model.Chapters != null)
+        {
+            @foreach (var chapter in Model.Chapters.OrderBy(c => c.ChapterOrder))
+            {
+                <div class="chapter-container">
+                    @if (chapter.Lessons != null)
+                    {
+                        <h3 class="text-center text-uppercase fw-bold text-dark mt-4 mb-4">
+                            Chương @chapter.ChapterOrder: @chapter.ChapterTitle
+                        </h3>
+                        @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
+                        {
+                            <div class="lesson-break pt-4">
+                                
+                                
+                                @if (lesson.Contents != null && lesson.Contents.Any())
+                                {
+                                    @foreach (var content in lesson.Contents)
+                                    {
+                                        @Html.Raw(content.ContentText)
+                                    }
+                                }
+                                else
+                                {
+                                    <h4>@chapter.ChapterOrder.@lesson.LessonOrder @lesson.LessonTitle</h4>
+                                    <p class="text-muted fst-italic">Nội dung bài học đang được biên soạn...</p>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+    </div>
+    <div class="references-page" style="page-break-before: always; padding-top: 20px;">
+        <h3 class="text-center text-uppercase fw-bold text-dark mb-4">Tài liệu tham khảo</h3>
+        
+        <p>Tài liệu giáo trình này được biên soạn và tổng hợp tự động bởi hệ thống Trí tuệ Nhân tạo (AI) <b>AutoCurriculum</b>.</p>
+        
+        <p><strong>Nguồn dữ liệu tham chiếu chính:</strong></p>
+        <ul>
+            @if (Model.Source != null)
+            {
+                <li style="margin-bottom: 10px;">
+                    <b>@Model.Source.SourceName</b> 
+                    @if (!string.IsNullOrEmpty(Model.Source.SourceUrl))
+                    {
+                        <span>- Truy cập tại: <a href="@Model.Source.SourceUrl" target="_blank" style="color: blue; text-decoration: underline;">@Model.Source.SourceUrl</a></span>
+                    }
+                </li>
+            }
+            else
+            {
+                <li>Hệ thống bách khoa toàn thư mở Wikipedia.</li>
+            }
+            <li>Các tài liệu học thuật định dạng mở trên Internet (Open Educational Resources).</li>
+        </ul>
+        
+        <p style="margin-top: 30px; font-style: italic;">
+            * Lưu ý: Nội dung do AI tự động trích xuất và sắp xếp, phục vụ cho mục đích học tập và tham khảo nội bộ.
+        </p>
+    </div>
+
+</body>
+</html>

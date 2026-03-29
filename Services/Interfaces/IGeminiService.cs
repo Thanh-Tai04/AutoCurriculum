@@ -1,4 +1,4 @@
-﻿using AutoCurriculum.ViewModels;
+﻿using AutoCurriculum.DTOs;
 namespace AutoCurriculum.Services.Interfaces
 {
     public interface IGeminiService

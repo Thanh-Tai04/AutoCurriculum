@@ -1,11 +1,11 @@
-﻿@model AutoCurriculum.Models.Chapter
+﻿@model AutoCurriculum.ViewModels.ChapterDetailViewModel
 
 @{
     ViewData["Title"] = "Nội dung chương";
 }
 
 <div class="container mt-5">
-    <a asp-action="Details" asp-route-id="@Model.TopicId" class="btn btn-outline-secondary mb-3">&larr; Quay lại Giáo trình</a>
+    <a asp-controller="Curriculum" asp-action="Details" asp-route-id="@Model.TopicId" class="btn btn-outline-secondary mb-3">&larr; Quay lại Giáo trình</a>
 
     <div class="card border-primary mb-3">
         <div class="card-header bg-primary text-white">
@@ -15,7 +15,7 @@
 
             <div class="row mb-4">
                 <div class="col-md-12">
-                    <form asp-action="CreateLesson" method="post" class="input-group">
+                    <form asp-controller="Lesson" asp-action="CreateLesson" method="post" class="input-group">
                         <input type="hidden" name="chapterId" value="@Model.ChapterId" />
                         <span class="input-group-text">Thêm bài mới:</span>
                         <input type="text" name="lessonTitle" class="form-control" placeholder="Ví dụ: Cài đặt môi trường..." required />
@@ -32,7 +32,7 @@
                     {
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>📝 @lesson.LessonTitle</span>
-                            <span class="badge bg-light text-dark border">Chưa có nội dung</span>
+                            <span class="badge bg-light text-dark border">@(!lesson.HasContent ? "Chưa có nội dung" : "Đã soạn")</span>
                         </li>
                     }
                 </ul>

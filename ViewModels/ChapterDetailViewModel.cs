@@ -5,6 +5,7 @@ namespace AutoCurriculum.ViewModels
         public int ChapterId { get; set; }
         public string ChapterTitle { get; set; }
         public int ChapterOrder { get; set; }
+        public int TopicId { get; set; }
         public string TopicName { get; set; } // Để hiển thị Breadcrumb
         public List<LessonItemViewModel> Lessons { get; set; } = new();
     }

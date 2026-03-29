@@ -2,6 +2,7 @@
 using AutoCurriculum.ViewModels;
 using AutoCurriculum.Repositories.Interfaces;
 using AutoCurriculum.Services.Interfaces;
+using AutoCurriculum.DTOs;
 using Newtonsoft.Json.Linq; // Thêm thư viện này để xử lý JSON gọn gàng hơn
 
 namespace AutoCurriculum.Services.Implementations
@@ -49,7 +50,7 @@ namespace AutoCurriculum.Services.Implementations
             string wikiUrl = $"https://vi.wikipedia.org/wiki/{Uri.EscapeDataString(exactTitle.Replace(" ", "_"))}";
 
             // Bước 2: Gọi Gemini sinh Curriculum (Trả về thẳng Object DTO, không cần JObject nữa)
-            AutoCurriculum.ViewModels.AiCurriculumDto aiData;
+            AutoCurriculum.DTOs.AiCurriculumDto aiData;
             try
             {
                 // Truyền đủ 4 tham số mới cập nhật vào Gemini

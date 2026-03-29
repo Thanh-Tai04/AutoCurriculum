@@ -8,7 +8,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb bg-light p-3 rounded shadow-sm">
             <li class="breadcrumb-item">
-                <a asp-action="Details" asp-route-id="@Model.TopicId" class="text-decoration-none fw-bold">@Model.TopicName</a>
+                <a asp-controller="Curriculum" asp-action="Details" asp-route-id="@Model.TopicId" class="text-decoration-none fw-bold">@Model.TopicName</a>
             </li>
             <li class="breadcrumb-item text-muted">
                 Chương @Model.ChapterOrder: @Model.ChapterTitle
@@ -25,16 +25,15 @@
         
         @if (Model.HtmlContents != null && Model.HtmlContents.Any())
         {
-            // NẾU ĐÃ CÓ NỘI DUNG TRONG DATABASE -> HIỂN THỊ LUÔN
             @foreach (var contentHtml in Model.HtmlContents)
             {
                 <div class="mb-4">
-                    @Html.Raw(contentHtml) </div>
+                    @Html.Raw(contentHtml) 
+                </div>
             }
         }
         else
         {
-            // NẾU CHƯA CÓ NỘI DUNG -> HIỆN NÚT GỌI AI
             <div id="emptyState" class="text-center py-5 bg-light rounded shadow-sm border">
                 <h4 class="text-muted mb-3">Bài học này chưa có nội dung!</h4>
                 <p class="mb-4">Bạn có muốn hệ thống AI biên soạn chi tiết bài giảng này không?</p>
@@ -54,29 +53,23 @@
         $(document).ready(function () {
             $("#btnGenerateContent").click(function () {
                 var btn = $(this);
-                
-                // 1. Hiệu ứng Loading
                 btn.prop("disabled", true);
                 btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Giáo sư AI đang viết bài...');
-                
                 $("#loadingStatus").text("Quá trình này có thể mất từ 10 - 20 giây. Vui lòng không làm mới trang...").fadeIn();
-
-                // 2. Gọi Ajax xuống Controller
+                
                 $.ajax({
-                    url: '/Curriculum/GenerateLessonContent',
+                    url: '/Lesson/GenerateLessonContent', // Gọi đến Lesson Controller
                     type: 'POST',
-                    data: { lessonId: @Model.LessonId }, // Truyền ID Bài học từ ViewModel
+                    data: { lessonId: @Model.LessonId }, 
                     success: function (response) {
                         if (response.success) {
                             $("#loadingStatus").removeClass("text-primary").addClass("text-success")
                                 .text("🎉 Soạn bài thành công! Đang tải nội dung...");
                             
-                            // Load lại trang để hiển thị nội dung HTML vừa lưu vào Database
                             setTimeout(function() {
                                 location.reload();
                             }, 1000);
                         } else {
-                            // Báo lỗi từ phía Server
                             $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
                                 .text("Lỗi: " + response.message);
                             btn.prop("disabled", false);
@@ -84,7 +77,6 @@
                         }
                     },
                     error: function () {
-                        // Báo lỗi mạng/Timeout
                         $("#loadingStatus").removeClass("text-primary").addClass("text-danger")
                             .text("Lỗi kết nối mạng hoặc Timeout. Vui lòng thử lại!");
                         btn.prop("disabled", false);

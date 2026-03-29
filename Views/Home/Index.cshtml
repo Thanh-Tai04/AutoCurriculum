@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Trang chủ - AutoCurriculum";
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        padding: 100px 0 80px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .feature-icon {
+        font-size: 3.5rem;
+        color: #0d6efd;
+        margin-bottom: 20px;
+    }
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(13, 110, 253, 0.2);
+    }
+    .hover-lift {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+
+<div class="hero-section mt-n3">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold text-primary mb-4" style="letter-spacing: -1px;">
+            Biên Soạn Giáo Trình Tự Động<br/><span class="text-dark">Với Sức Mạnh AI</span>
+        </h1>
+        <p class="lead text-secondary mx-auto mb-5" style="max-width: 750px; font-size: 1.25rem;">
+            Chỉ cần nhập tên chủ đề, AutoCurriculum sẽ tổng hợp dữ liệu chuẩn xác từ Wikipedia và sử dụng Trí Tuệ Nhân Tạo để tạo ra một cuốn giáo trình hoàn chỉnh cho bạn trong tích tắc.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg px-5 shadow rounded-pill fw-bold">
+                🚀 Bắt đầu miễn phí
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary btn-lg px-5 rounded-pill fw-bold">
+                Đăng nhập
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5 my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold display-6">Vũ Khí Của AutoCurriculum</h2>
+        <p class="text-muted fs-5">Hệ thống được trang bị những công nghệ tiên tiến nhất.</p>
+    </div>
+    
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="p-5 border-0 rounded-4 shadow-sm h-100 bg-white hover-lift">
+                <i class="bi bi-robot feature-icon"></i>
+                <h4 class="fw-bold">AI Sinh Nội Dung</h4>
+                <p class="text-muted mb-0">Sử dụng mô hình ngôn ngữ lớn (LLM) để soạn thảo bài giảng chi tiết, logic và dễ hiểu như một giảng viên thực thụ.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-5 border-0 rounded-4 shadow-sm h-100 bg-white hover-lift">
+                <i class="bi bi-wikipedia feature-icon text-dark"></i>
+                <h4 class="fw-bold">Xác Thực Wikipedia</h4>
+                <p class="text-muted mb-0">Loại bỏ tình trạng AI bị "ảo giác" bằng cách đối chiếu từ khóa và cấu trúc từ bách khoa toàn thư uy tín nhất thế giới.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-5 border-0 rounded-4 shadow-sm h-100 bg-white hover-lift">
+                <i class="bi bi-file-earmark-pdf feature-icon text-danger"></i>
+                <h4 class="fw-bold">Xuất PDF Chuẩn Hóa</h4>
+                <p class="text-muted mb-0">Tự động dàn trang, tạo mục lục và căn lề theo tiêu chuẩn học thuật (áp dụng chuẩn đóng gáy sách).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-light py-5">
+    <div class="container text-center py-4">
+        <h2 class="fw-bold display-6 mb-5">Cách Thức Hoạt Động</h2>
+        <div class="row g-5">
+            <div class="col-md-4">
+                <div class="step-number">1</div>
+                <h4 class="fw-bold">Nhập Chủ Đề</h4>
+                <p class="text-muted px-3">Cung cấp từ khóa lĩnh vực bạn muốn học (VD: Lập trình Python, Blockchain, Marketing...).</p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-number">2</div>
+                <h4 class="fw-bold">Duyệt Cấu Trúc</h4>
+                <p class="text-muted px-3">AI sẽ tự động lên khung chương trình học. Bạn có toàn quyền tùy biến, thêm hoặc sửa Chương/Bài.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-number">3</div>
+                <h4 class="fw-bold">Nhận Giáo Trình</h4>
+                <p class="text-muted px-3">Bấm nút nhờ AI soạn chi tiết từng bài. Cuối cùng, tải file PDF về và bắt đầu con đường chinh phục tri thức.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5 mb-5 text-center mt-4">
+    <div class="p-5 bg-primary text-white rounded-5 shadow-lg" style="background-image: linear-gradient(to right, #0d6efd, #0b5ed7);">
+        <h2 class="fw-bold mb-3 display-6">Sẵn sàng trải nghiệm cách học tập mới?</h2>
+        <p class="mb-4 fs-5 text-white-50">Tiết kiệm hàng chục giờ đồng hồ tìm kiếm tài liệu với AutoCurriculum.</p>
+        <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg text-primary fw-bold px-5 py-3 rounded-pill shadow-sm">
+            Tạo tài khoản ngay bây giờ
+        </a>
+    </div>
+</div>
