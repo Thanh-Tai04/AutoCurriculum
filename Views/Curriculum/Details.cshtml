@@ -4,45 +4,60 @@
     ViewData["Title"] = "Chi tiết giáo trình";
 }
 
-<div class="container mt-5 mb-5">
-    <a asp-controller="Curriculum" asp-action="Index" class="btn btn-outline-secondary mb-3">&larr; Quay lại danh sách</a>
+<style>
+    .topic-container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .card-custom { border: none; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
+    .card-header-custom { border-top-left-radius: 12px !important; border-top-right-radius: 12px !important; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
+    .accordion-item { border-radius: 10px !important; border: 1px solid #eaeaea; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); overflow: hidden; }
+    .accordion-button { font-weight: 600; font-size: 1.05rem; padding: 1.25rem; }
+    .accordion-button:not(.collapsed) { background-color: #f0f7ff; color: #0d6efd; box-shadow: inset 0 -1px 0 rgba(0,0,0,.125); }
+    .list-group-item-custom { border-left: none; border-right: none; padding: 1rem 1.25rem; transition: all 0.2s ease; }
+    .list-group-item-custom:hover { background-color: #f8f9fa; transform: translateX(4px); }
+    .btn-rounded { border-radius: 50rem; padding: 6px 20px; font-weight: 600; }
+    .btn-rounded:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+</style>
+
+<div class="container topic-container mt-5 mb-5">
+    <a asp-controller="Curriculum" asp-action="Index" class="btn btn-outline-secondary btn-rounded mb-4 shadow-sm">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+    </a>
     
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-primary text-white p-4">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="card card-custom mb-5">
+        <div class="card-header card-header-custom text-white p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h2 class="mb-0">📚 @Model.TopicName</h2>
-                    <small>Ngày tạo: @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</small>
+                    <h2 class="mb-1 fw-bold">📚 @Model.TopicName</h2>
+                    <span class="badge bg-light text-primary opacity-75">Ngày tạo: @Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
                 </div>
                 
                 <div class="d-flex gap-2">
-                    <a asp-controller="Export" asp-action="Preview" asp-route-id="@Model.TopicId" class="btn btn-outline-light fw-bold shadow-sm" target="_blank">
+                    <a asp-controller="Export" asp-action="Preview" asp-route-id="@Model.TopicId" class="btn btn-light btn-rounded text-primary shadow-sm" target="_blank">
                         <i class="bi bi-eye-fill"></i> Xem trước
                     </a>
-                    <a asp-controller="Export" asp-action="ExportToPdf" asp-route-id="@Model.TopicId" class="btn btn-light fw-bold shadow-sm">
-                        <i class="bi bi-file-earmark-pdf-fill text-danger"></i> Tải PDF
+                    <a asp-controller="Export" asp-action="ExportToPdf" asp-route-id="@Model.TopicId" class="btn btn-danger btn-rounded shadow-sm">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Tải PDF
                     </a>
                 </div>
             </div>
         </div>
-        <div class="card-body p-4">
-            <div class="lead" style="white-space: pre-wrap; font-size: 1rem;">@Model.Description</div>
+        <div class="card-body p-4 p-md-5">
+            <div class="lead text-secondary" style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.7;">@Model.Description</div>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
-        <h4 class="text-primary mb-0"><i class="bi bi-journal-bookmark-fill"></i> Cấu trúc Giáo trình</h4>
+    <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+        <h4 class="text-primary mb-0 fw-bold"><i class="bi bi-journal-bookmark-fill me-2"></i> Cấu trúc Giáo trình</h4>
 
-        <form asp-controller="Chapter" asp-action="CreateChapter" method="post" class="d-flex">
+        <form asp-controller="Chapter" asp-action="CreateChapter" method="post" class="d-flex shadow-sm rounded">
             <input type="hidden" name="topicId" value="@Model.TopicId" />
-            <input type="text" name="chapterTitle" class="form-control form-control-sm me-2" placeholder="Tên chương mới..." required />
-            <button type="submit" class="btn btn-success btn-sm">Thêm Chương</button>
+            <input type="text" name="chapterTitle" class="form-control border-primary me-2" placeholder="Tên chương mới..." required style="min-width: 250px;" />
+            <button type="submit" class="btn btn-primary fw-bold px-3">Thêm Chương</button>
         </form>
     </div>
 
     @if (Model.Chapters != null && Model.Chapters.Any())
     {
-        <div class="accordion shadow-sm" id="curriculumAccordion">
+        <div class="accordion" id="curriculumAccordion">
             @foreach (var chapter in Model.Chapters.OrderBy(c => c.ChapterOrder))
             {
                 string collapseId = "collapse_" + chapter.ChapterId;
@@ -50,23 +65,23 @@
 
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="@headingId">
-                        <button class="accordion-button collapsed fw-bold text-dark bg-light border-bottom" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
                             📖 Chương @chapter.ChapterOrder: @chapter.ChapterTitle
                         </button>
                     </h2>
 
                     <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#curriculumAccordion">
-                        <div class="accordion-body">
+                        <div class="accordion-body p-0">
 
                             @if (chapter.Lessons != null && chapter.Lessons.Any())
                             {
-                                <ul class="list-group list-group-flush mb-3">
+                                <ul class="list-group list-group-flush mb-0">
                                     @foreach (var lesson in chapter.Lessons.OrderBy(l => l.LessonOrder))
                                     {
-                                        <li class="list-group-item d-flex justify-content-between align-items-center px-1">
-                                            <span>📄 <b>@chapter.ChapterOrder.@lesson.LessonOrder </b> @lesson.LessonTitle</span>
+                                        <li class="list-group-item list-group-item-custom d-flex justify-content-between align-items-center">
+                                            <span><i class="bi bi-file-text text-primary me-2"></i> <b>@chapter.ChapterOrder.@lesson.LessonOrder </b> @lesson.LessonTitle</span>
 
-                                            <a asp-controller="Lesson" asp-action="LessonDetails" asp-route-id="@lesson.LessonId" class="btn btn-sm btn-outline-primary rounded-pill">
+                                            <a asp-controller="Lesson" asp-action="LessonDetails" asp-route-id="@lesson.LessonId" class="btn btn-sm btn-outline-primary btn-rounded px-3">
                                                 Vào học / Soạn bài
                                             </a>
                                         </li>
@@ -75,18 +90,22 @@
                             }
                             else
                             {
-                                <p class="text-muted small fst-italic ms-3">Chưa có bài học nào trong chương này.</p>
+                                <div class="p-4 text-center">
+                                    <p class="text-muted small fst-italic mb-0">Chưa có bài học nào trong chương này.</p>
+                                </div>
                             }
 
-                            <div class="d-flex justify-content-between border-top pt-3 mt-2 bg-white">
+                            <div class="d-flex justify-content-between align-items-center border-top p-3 bg-light mt-2">
                                 <form asp-controller="Lesson" asp-action="CreateLesson" method="post" class="d-flex">
                                     <input type="hidden" name="chapterId" value="@chapter.ChapterId" />
-                                    <input type="text" name="lessonTitle" class="form-control form-control-sm me-2" placeholder="Tên bài học..." required style="min-width: 250px;" />
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Thêm bài học</button>
+                                    <input type="text" name="lessonTitle" class="form-control form-control-sm border-success me-2" placeholder="Tên bài học..." required style="min-width: 250px;" />
+                                    <button type="submit" class="btn btn-sm btn-success fw-bold">Thêm bài học</button>
                                 </form>
 
-                                <form asp-controller="Chapter" asp-action="DeleteChapter" asp-route-id="@chapter.ChapterId" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa chương này? Toàn bộ bài học bên trong sẽ bị mất!');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Xóa Chương</button>
+                                <form asp-controller="Chapter" asp-action="DeleteChapter" asp-route-id="@chapter.ChapterId" method="post" class="form-delete-chapter">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-rounded px-3 btn-delete">
+                                        <i class="bi bi-trash3-fill"></i> Xóa Chương
+                                    </button>
                                 </form>
                             </div>
 
@@ -98,8 +117,40 @@
     }
     else
     {
-        <div class="alert alert-info">
-            Chủ đề này chưa có cấu trúc. Hãy thêm chương đầu tiên ở góc trên bên phải!
+        <div class="alert alert-info shadow-sm rounded-3 border-start border-info border-4 p-4 mt-4">
+            <h5 class="alert-heading fw-bold">Chưa có cấu trúc!</h5>
+            <p class="mb-0">Chủ đề này hiện tại vẫn đang trống. Hãy thêm chương đầu tiên ở góc trên bên phải để bắt đầu xây dựng giáo trình nhé!</p>
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Bắt sự kiện click vào tất cả các nút Xóa Chương
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const form = this.closest('.form-delete-chapter');
+                    
+                    Swal.fire({
+                        title: 'Xóa chương này?',
+                        text: "Toàn bộ bài học bên trong sẽ bị mất vĩnh viễn và không thể khôi phục!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Có, xóa ngay!',
+                        cancelButtonText: 'Hủy bỏ'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}
