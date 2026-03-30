@@ -88,7 +88,8 @@ namespace AutoCurriculum.Controllers
 
             try
             {
-                var (exactTitle, summary, _) = await _wikiService.GetTopicDataAsync(topicName);
+                // ĐÃ THÊM "Wikipedia_Preview" VÀO ĐÂY
+                var (exactTitle, summary, _) = await _wikiService.GetTopicDataAsync(topicName, "Wikipedia_Preview");
                 return Json(new { success = true, exactTitle = exactTitle, summary = summary });
             }
             catch (Exception ex)

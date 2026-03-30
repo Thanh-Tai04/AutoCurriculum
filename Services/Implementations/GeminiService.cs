@@ -4,7 +4,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Diagnostics; // Thêm để dùng Stopwatch
-using AutoCurriculum.Models; // Thêm để dùng SystemLog
+using AutoCurriculum.Models;
+using System.Security.Claims; // Thêm để dùng SystemLog
 
 namespace AutoCurriculum.Services.Implementations
 {
@@ -16,12 +17,14 @@ namespace AutoCurriculum.Services.Implementations
 
         private string ApiKey => _configuration["GeminiSettings:ApiKey"] ?? "";
         private const string GeminiModel = "gemini-2.5-flash";
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, AutoCurriculumDbContext context)
+        public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, AutoCurriculumDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _context = context; // Inject DbContext
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AiCurriculumDto> GenerateCurriculumAsync(string topicName, string sourceUrl, string wikiDescription, List<string> wikiSections)
@@ -103,14 +106,24 @@ namespace AutoCurriculum.Services.Implementations
                 7. VÀO THẲNG VẤN ĐỀ: Đoạn HTML trả về BẮT BUỘC phải bắt đầu ngay lập tức bằng thẻ <h3> của mục {lessonNumber}.1. Không có bất kỳ đoạn văn <p> nào nằm trước thẻ <h3> đầu tiên này.
                 ";
             // Truyền thêm lessonTitle để ghi log
-            var result = await CallGeminiAsync(prompt, lessonTitle, "Generate_Lesson");
+            var result = await CallGeminiAsync(prompt, lessonTitle, "Generate_Lesson" );
             return result.Replace("```html", "").Replace("```", "").Trim();
         }
 
         private async Task<string> CallGeminiAsync(string prompt, string keyword, string actionName)
         {
             var watch = Stopwatch.StartNew();
-            var log = new SystemLog { Action = actionName, Keyword = keyword, CreatedAt = DateTime.Now };
+            string currentUserEmail = "Khách (Chưa đăng nhập)";
+            var user = _httpContextAccessor.HttpContext?.User;
+            
+            if (user != null && user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                // Ưu tiên lấy Email từ Claims, nếu không có thì lấy Name
+                currentUserEmail = user.FindFirst(ClaimTypes.Email)?.Value 
+                                ?? user.Identity.Name 
+                                ?? "User ẩn danh";
+            }
+            var log = new SystemLog { Action = actionName, Keyword = keyword, UserEmail = currentUserEmail, CreatedAt = DateTime.Now };
 
             try 
             {

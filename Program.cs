@@ -60,6 +60,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+builder.Services.AddHttpContextAccessor();
+
 
 
 var app = builder.Build();

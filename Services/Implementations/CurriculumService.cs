@@ -44,7 +44,7 @@ namespace AutoCurriculum.Services.Implementations
         public async Task<Topic> GenerateTopicAsync(string topicName)
         {
             // Bước 1: Lấy dữ liệu từ Wikipedia (Bao gồm cả Sections)
-            var (exactTitle, summary, sections) = await _wikiService.GetTopicDataAsync(topicName);
+            var (exactTitle, summary, sections) = await _wikiService.GetTopicDataAsync(topicName, "Wikipedia_FetchData");
 
             // Tự động tạo Link gốc của Wikipedia để lát nữa làm Nguồn tham khảo
             string wikiUrl = $"https://vi.wikipedia.org/wiki/{Uri.EscapeDataString(exactTitle.Replace(" ", "_"))}";

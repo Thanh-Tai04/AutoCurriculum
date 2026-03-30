@@ -5,6 +5,6 @@
         /// <summary>
         /// Tìm kiếm và trả về: (exactTitle, summary, danh sách section headings)
         /// </summary>
-        Task<(string ExactTitle, string Summary, List<string> Sections)> GetTopicDataAsync(string topicName);
+        Task<(string ExactTitle, string Summary, List<string> Sections)> GetTopicDataAsync(string topicName, string actionName = "Wikipedia_Crawl");
     }
 }

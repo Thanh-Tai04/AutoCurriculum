@@ -1,31 +1,52 @@
 ﻿using AutoCurriculum.ViewModels;
 using AutoCurriculum.Services.Interfaces;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics; // Thêm để dùng Stopwatch
-using AutoCurriculum.Models; // Thêm để dùng SystemLog
+using System.Diagnostics; 
+using AutoCurriculum.Models;
+using Microsoft.AspNetCore.Http; 
+using System.Security.Claims;
 
 namespace AutoCurriculum.Services.Implementations
 {
     public class WikipediaService : IWikipediaService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly AutoCurriculumDbContext _context; // Thêm DbContext
+        private readonly AutoCurriculumDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         private static readonly HashSet<string> _excludedHeadings = new()
         {
             "Xem thêm", "Tham khảo", "Liên kết ngoài", "Chú thích", "Thư mục"
         };
 
-        public WikipediaService(IHttpClientFactory httpClientFactory, AutoCurriculumDbContext context)
+        public WikipediaService(IHttpClientFactory httpClientFactory, AutoCurriculumDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _httpClientFactory = httpClientFactory;
-            _context = context; // Inject DbContext
+            _context = context; 
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<(string ExactTitle, string Summary, List<string> Sections)> GetTopicDataAsync(string topicName)
+        // THÊM THAM SỐ actionName VÀO ĐÂY
+        public async Task<(string ExactTitle, string Summary, List<string> Sections)> GetTopicDataAsync(string topicName, string actionName = "Wikipedia_Crawl")
         {
             var watch = Stopwatch.StartNew();
-            var log = new SystemLog { Action = "Wikipedia_Crawl", Keyword = topicName, CreatedAt = DateTime.Now };
+
+            string currentUserEmail = "Khách (Chưa đăng nhập)";
+            var user = _httpContextAccessor.HttpContext?.User;
+            
+            if (user != null && user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                currentUserEmail = user.FindFirst(ClaimTypes.Email)?.Value 
+                                ?? user.Identity.Name 
+                                ?? "User ẩn danh";
+            }
+
+            var log = new SystemLog { 
+                Action = actionName, // Gán actionName để phân biệt trên Dashboard
+                Keyword = topicName, 
+                UserEmail = currentUserEmail, 
+                CreatedAt = DateTime.Now 
+            };
 
             try 
             {
@@ -82,13 +103,27 @@ namespace AutoCurriculum.Services.Implementations
                 }
 
                 log.Status = "Success";
-                log.Message = $"Found exact title: {exactTitle}";
+                
+                // GHI LOG MESSAGE TIẾNG VIỆT THEO TỪNG HÀNH ĐỘNG
+                if (actionName == "Wikipedia_Preview")
+                {
+                    log.Message = $"Found exact title: {exactTitle}";
+                }
+                else if (actionName == "Wikipedia_FetchData")
+                {
+                    log.Message = $"Fetched curriculum structure: {exactTitle}";
+                }
+                else
+                {
+                    log.Message = $"Wikipedia data fetched successfully: {exactTitle}";
+                }
+
                 return (exactTitle, summary, sections);
             }
             catch (Exception ex)
             {
                 log.Status = "Error";
-                log.Message = ex.Message;
+                log.Message = $"Lỗi khi trích xuất: {ex.Message}";
                 throw;
             }
             finally

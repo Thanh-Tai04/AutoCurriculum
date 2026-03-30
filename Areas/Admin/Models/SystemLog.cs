@@ -7,6 +7,7 @@ namespace AutoCurriculum.Models
     {
         [Key]
         public int Id { get; set; }
+        public string? UserEmail { get; set; } // Lưu email người dùng thực hiện
 
         public string Action { get; set; }    
         

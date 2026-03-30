@@ -29,7 +29,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Thời gian</th>
-                            <th>Hành động</th>
+                            <th>Người dùng</th> <th>Hành động</th>
                             <th>Từ khóa</th>
                             <th>Trạng thái</th>
                             <th>Xử lý</th>
@@ -45,6 +45,11 @@
                             {
                                 <tr>
                                     <td>@log.CreatedAt.ToString("HH:mm:ss dd/MM")</td>
+                                    
+                                    <td>
+                                        <span class="text-primary fw-bold">@(string.IsNullOrEmpty(log.UserEmail) ? "Khách" : log.UserEmail)</span>
+                                    </td>
+                                    
                                     <td><span class="badge bg-info text-dark">@log.Action</span></td>
                                     <td><code>@log.Keyword</code></td>
                                     <td class="@(log.Status == "Success" ? "status-success" : "status-error")">
@@ -58,7 +63,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center">Chưa có dữ liệu nhật ký nào.</td>
+                                <td colspan="7" class="text-center">Chưa có dữ liệu nhật ký nào.</td>
                             </tr>
                         }
                     </tbody>
@@ -66,5 +71,27 @@
             </div>
         </div>
     </div>
+    <script>
+        // Thiết lập thời gian lặp lại: 3000 = 3 giây
+        const refreshInterval = 3000; 
+
+        setInterval(() => {
+            // Gọi ngầm lại chính đường dẫn trang hiện tại
+            fetch(window.location.href) 
+                .then(response => response.text())
+                .then(html => {
+                    // Phân tích mã HTML trả về
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Chỉ lấy đúng phần ruột (tbody) của cái bảng mới
+                    const newTbody = doc.querySelector('tbody').innerHTML;
+                    
+                    // Lắp ráp thay thế vào cái bảng đang hiển thị
+                    document.querySelector('tbody').innerHTML = newTbody;
+                })
+                .catch(err => console.error('Lỗi khi tự động cập nhật:', err));
+        }, refreshInterval);
+    </script>
 </body>
 </html>
