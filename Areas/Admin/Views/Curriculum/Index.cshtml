@@ -1,0 +1,167 @@
+@model IEnumerable<AutoCurriculum.Models.Topic>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Giáo trình";
+}
+
+<style>
+    .page-header { flex-shrink: 0; margin-bottom: 20px; }
+    
+    .table-container {
+        background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+        overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 200px); 
+    }
+    .table td, .table th { vertical-align: middle; padding: 14px 20px; }
+    .table thead th { 
+        position: sticky; top: 0; z-index: 10; 
+        background-color: #f8f9fa; border-bottom: 2px solid #e9ecef; 
+        text-transform: uppercase; font-size: 0.85rem; color: #6c757d; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); white-space: nowrap;
+    }
+    
+    .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-container::-webkit-scrollbar-track { background: #f8f9fa; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb { background: #cbd3da; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
+
+    .topic-desc { font-size: 0.85rem; color: #6c757d; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .badge-chapter { background-color: #e6f2ff; color: #0d6efd; padding: 5px 10px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;}
+    .btn-action { border-radius: 50rem; padding: 4px 15px; font-weight: 600; font-size: 0.85rem; }
+</style>
+
+<div class="h-100 d-flex flex-column" style="overflow: hidden;">
+    
+    <div class="page-header d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">📚 Quản lý Giáo trình</h2>
+            <p class="text-muted mb-0">Kiểm soát và dọn dẹp các tài liệu do AI sinh ra</p>
+        </div>
+        
+        <div class="input-group shadow-sm" style="width: 380px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="topicSearch" class="form-control border-start-0 ps-0" placeholder="Tìm tên giáo trình hoặc Email...">
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success shadow-sm rounded-3 border-start border-success border-4 mb-3 flex-shrink-0">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="table-container flex-grow-1">
+        <table class="table table-hover mb-0" id="topicTable">
+            <thead>
+                <tr>
+                    <th width="5%">ID</th>
+                    <th width="35%">Tên Giáo trình & Mô tả</th>
+                    <th width="20%">email</th>
+                    <th width="10%" class="text-center">Cấu trúc</th>
+                    <th width="15%">Ngày tạo</th>
+                    <th width="15%" class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var topic in Model)
+                    {
+                        <tr>
+                            <td class="text-muted fw-bold">#@topic.TopicId</td>
+                            <td>
+                                <strong class="fs-6 text-dark">@topic.TopicName</strong>
+                                <div class="topic-desc mt-1" title="@topic.Description">
+                                    @(string.IsNullOrEmpty(topic.Description) ? "Không có mô tả" : topic.Description)
+                                </div>
+                            </td>
+                            
+                            <td class="email-cell">
+                                @{
+                                    // Truy cập thẳng vào Email của bảng AspNetUsers liên kết qua cột UserId
+                                    var creatorEmail = topic.User?.Email ?? "Hệ thống / Khách";
+                                }
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem; font-weight: bold;">
+                                        @(creatorEmail == "Hệ thống / Khách" ? "A" : creatorEmail.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <span class="text-primary fw-bold" style="font-size: 0.9rem;">@creatorEmail</span>
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge-chapter">
+                                    <i class="bi bi-journal-text"></i> @(topic.Chapters?.Count ?? 0) Chương
+                                </span>
+                            </td>
+                            <td><span class="text-muted">@(topic.CreatedAt?.ToString("HH:mm - dd/MM/yyyy") ?? "N/A")</span></td>
+                            <td class="text-center">
+                                <a href="/Curriculum/Details/@topic.TopicId" target="_blank" class="btn btn-outline-primary btn-sm btn-action me-1">
+                                    <i class="bi bi-eye-fill"></i> Xem
+                                </a>
+                                <form action="/Admin/Curriculum/Delete" method="post" class="d-inline form-delete">
+                                    <input type="hidden" name="id" value="@topic.TopicId" />
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-action btn-delete">
+                                        <i class="bi bi-trash-fill"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="text-center py-5 text-muted">Hệ thống chưa có giáo trình nào được tạo.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // 1. Lọc tìm kiếm Real-time (Quét cả Tên giáo trình VÀ Email)
+        document.getElementById('topicSearch').addEventListener('input', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#topicTable tbody tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('strong')) {
+                    // Lấy chữ trong cột Tên Giáo Trình
+                    let title = row.querySelector('strong').textContent.toLowerCase();
+                    // Lấy chữ trong cột Email (class email-cell)
+                    let email = row.querySelector('.email-cell').textContent.toLowerCase();
+                    
+                    // Nếu Tên HOẶC Email có chứa từ khóa thì hiển thị, ngược lại thì ẩn
+                    if (title.includes(filter) || email.includes(filter)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // 2. Cảnh báo khi bấm Xóa
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.form-delete');
+                Swal.fire({
+                    title: 'Xóa giáo trình này?',
+                    text: "Hành động này sẽ xóa vĩnh viễn giáo trình và tất cả bài học bên trong. Không thể khôi phục!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Có, xóa ngay!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -131,7 +131,7 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // 1. TÍNH NĂNG TÌM KIẾM NHANH (Lọc trực tiếp bằng JavaScript không cần load lại trang)
+        // 1. TÍNH NĂNG TÌM KIẾM NHANH
         document.getElementById('userSearch').addEventListener('input', function() {
             let filter = this.value.toLowerCase();
             let rows = document.querySelectorAll('#userTable tbody tr');
@@ -142,23 +142,32 @@
             });
         });
 
-        // 2. XÁC NHẬN TRƯỚC KHI KHÓA TÀI KHOẢN
+        // 2. XÁC NHẬN TRƯỚC KHI KHÓA / MỞ KHÓA
         document.querySelectorAll('.btn-lock').forEach(btn => {
             btn.addEventListener('click', function() {
                 const form = this.closest('.form-lock');
+                
+                // Kiểm tra xem nút bạn vừa bấm là nút Khóa hay Mở khóa
+                const isUnlocking = this.innerHTML.includes('Mở khóa'); 
+                
+                const titleText = isUnlocking ? 'Mở khóa tài khoản?' : 'Khóa tài khoản này?';
+                const bodyText = isUnlocking ? 'Người dùng sẽ có thể đăng nhập và tiếp tục sử dụng hệ thống.' : 'Người dùng sẽ không thể đăng nhập và sử dụng hệ thống AI nữa!';
+                const confirmBtnText = isUnlocking ? 'Có, mở khóa!' : 'Có, khóa ngay!';
+                const confirmBtnColor = isUnlocking ? '#198754' : '#dc3545'; // Xanh lá cho mở, Đỏ cho khóa
+
                 Swal.fire({
-                    title: 'Khóa tài khoản này?',
-                    text: "Người dùng sẽ không thể đăng nhập và sử dụng hệ thống AI nữa!",
+                    title: titleText,
+                    text: bodyText,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
+                    confirmButtonColor: confirmBtnColor,
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Có, khóa ngay!',
+                    confirmButtonText: confirmBtnText,
                     cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // form.submit(); // Bỏ comment dòng này khi bạn đã code Backend xong
-                        Swal.fire('Đã khóa!', 'Tính năng đang ở chế độ Demo.', 'success');
+                        // ĐÃ BỎ COMMENT Ở ĐÂY - Form sẽ được gửi thật xuống Backend!
+                        form.submit(); 
                     }
                 });
             });
