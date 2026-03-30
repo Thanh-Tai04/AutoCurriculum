@@ -84,6 +84,11 @@
             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")" href="/Admin/Dashboard">
                 <i class="bi bi-speedometer2"></i> <span>Hệ thống Monitor</span>
             </a>
+            
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "User" ? "active" : "")" href="/Admin/User">
+                <i class="bi bi-people-fill"></i> <span>Quản lý Người dùng</span>
+            </a>
+            
             <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Config" ? "active" : "")" href="/Admin/Config">
                 <i class="bi bi-gear-fill"></i> <span>Cấu hình Prompt AI</span>
             </a>

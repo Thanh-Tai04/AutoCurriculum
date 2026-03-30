@@ -1,0 +1,167 @@
+@* Lưu ý: Thay đổi AutoCurriculum.Models.User thành Model tài khoản thực tế của bạn *@
+@model IEnumerable<dynamic> 
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Người dùng";
+}
+
+<style>
+    .page-header { flex-shrink: 0; margin-bottom: 20px; }
+    
+    /* CSS Bảng Cuộn (Dùng chung DNA với Dashboard) */
+    .table-container {
+        background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+        overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 200px); 
+    }
+    .table td, .table th { vertical-align: middle; white-space: nowrap; padding: 14px 20px; }
+    .table thead th { 
+        position: sticky; top: 0; z-index: 10; 
+        background-color: #f8f9fa; border-bottom: 2px solid #e9ecef; 
+        text-transform: uppercase; font-size: 0.85rem; color: #6c757d; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* Custom Scrollbar */
+    .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-container::-webkit-scrollbar-track { background: #f8f9fa; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb { background: #cbd3da; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
+
+    /* Badges Trạng thái & Vai trò */
+    .badge-role-admin { background-color: #ffe6e6; color: #dc3545; padding: 5px 10px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;}
+    .badge-role-user { background-color: #e6f2ff; color: #0d6efd; padding: 5px 10px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;}
+    .status-active { color: #198754; font-weight: bold; }
+    .status-locked { color: #6c757d; font-weight: bold; text-decoration: line-through; }
+    
+    .btn-action { border-radius: 50rem; padding: 4px 15px; font-weight: 600; font-size: 0.85rem; }
+</style>
+
+<div class="h-100 d-flex flex-column" style="overflow: hidden;">
+    
+    <div class="page-header d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">👥 Quản lý Người dùng</h2>
+            <p class="text-muted mb-0">Xem danh sách và phân quyền tài khoản hệ thống</p>
+        </div>
+        
+        <div class="input-group shadow-sm" style="width: 350px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="userSearch" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm Email hoặc Tên...">
+        </div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success shadow-sm rounded-3 border-start border-success border-4 mb-3 flex-shrink-0">
+            @TempData["Message"]
+        </div>
+    }
+
+    <div class="table-container flex-grow-1">
+        <table class="table table-hover mb-0" id="userTable">
+            <thead>
+                <tr>
+                    <th>Email / Tài khoản</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tham gia</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var user in Model)
+                    {
+                        string initial = string.IsNullOrEmpty(user.Email) ? "U" : user.Email.Substring(0, 1).ToUpper();
+                        
+                        // Kiểm tra logic khóa bằng LockoutEnd
+                        bool isLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow;
+                        
+                        // Tạm thời coi tất cả là user thường, sau này bạn có thể join với bảng Role để lấy quyền thật
+                        bool isAdmin = false; 
+
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="text-white rounded-circle d-flex justify-content-center align-items-center me-3 bg-secondary" style="width: 40px; height: 40px; font-weight: bold;">
+                                        @initial
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark">@(string.IsNullOrEmpty(user.Email) ? "Chưa cập nhật" : user.Email)</h6>
+                                        <small class="text-muted">ID: @(user.Id.Substring(0, 8))...</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge-role-user">Người dùng</span></td>
+                            <td class="@(isLocked ? "status-locked" : "status-active")">
+                                @(isLocked ? "⛔ Đã bị khóa" : "● Đang hoạt động")
+                            </td>
+                            <td><span class="text-muted">Không xác định</span></td>
+                            <td class="text-center">
+                                <form action="/Admin/User/ToggleLock" method="post" class="d-inline form-lock">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    
+                                    @if (isLocked)
+                                    {
+                                        <button type="button" class="btn btn-success btn-sm btn-action btn-lock">
+                                            <i class="bi bi-unlock-fill"></i> Mở khóa
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-danger btn-sm btn-action btn-lock">
+                                            <i class="bi bi-lock-fill"></i> Khóa
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" class="text-center py-5 text-muted">Chưa có người dùng nào đăng ký.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // 1. TÍNH NĂNG TÌM KIẾM NHANH (Lọc trực tiếp bằng JavaScript không cần load lại trang)
+        document.getElementById('userSearch').addEventListener('input', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#userTable tbody tr');
+            
+            rows.forEach(row => {
+                let email = row.querySelector('h6').textContent.toLowerCase();
+                row.style.display = email.includes(filter) ? '' : 'none';
+            });
+        });
+
+        // 2. XÁC NHẬN TRƯỚC KHI KHÓA TÀI KHOẢN
+        document.querySelectorAll('.btn-lock').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.form-lock');
+                Swal.fire({
+                    title: 'Khóa tài khoản này?',
+                    text: "Người dùng sẽ không thể đăng nhập và sử dụng hệ thống AI nữa!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Có, khóa ngay!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // form.submit(); // Bỏ comment dòng này khi bạn đã code Backend xong
+                        Swal.fire('Đã khóa!', 'Tính năng đang ở chế độ Demo.', 'success');
+                    }
+                });
+            });
+        });
+    </script>
+}
