@@ -63,20 +63,43 @@ namespace AutoCurriculum.Controllers
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                // Kiểm tra tài khoản bị khóa trước khi gửi OTP
+                // Kiểm tra tài khoản bị khóa
                 if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
                 {
                     ModelState.AddModelError("", "Tài khoản đã bị khóa. Vui lòng liên hệ Admin.");
                     return View(model);
                 }
 
-                // Tạo và gửi OTP
-                var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-                await _emailService.SendEmailAsync(user.Email!,
-                    "🔐 Mã xác nhận Đăng nhập - AutoCurriculum",
-                    $"<h3>Xin chào {user.FullName},</h3>" +
-                    $"<p>Mã OTP: <b style='font-size:24px;color:red'>{otp}</b></p>" +
-                    $"<p>Mã có hiệu lực 3 phút. Không chia sẻ cho ai!</p>");
+                // 🌟 ĐẶC QUYỀN ADMIN: Bỏ qua OTP, đăng nhập thẳng!
+                var isRoleAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                if (isRoleAdmin || user.Email == "admin@autocurriculum.com")
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
+                    
+                    // Ghi log Admin đăng nhập
+                    await WriteLog(user.Email, "LOGIN_SUCCESS", user.Email, "SUCCESS", "Admin đăng nhập thành công (Bypass OTP)");
+                    
+                    var roles = await _userManager.GetRolesAsync(user);
+                    return Redirect(PostLoginRedirect.GetUrl(roles, returnUrl));
+                }
+
+                // 📩 LUỒNG BÌNH THƯỜNG: Dành cho User (Học viên)
+                try 
+                {
+                    // Tạo và gửi OTP
+                    var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+                    await _emailService.SendEmailAsync(user.Email!,
+                        "🔐 Mã xác nhận Đăng nhập - AutoCurriculum",
+                        $"<h3>Xin chào {user.FullName},</h3>" +
+                        $"<p>Mã OTP: <b style='font-size:24px;color:red'>{otp}</b></p>" +
+                        $"<p>Mã có hiệu lực 3 phút. Không chia sẻ cho ai!</p>");
+                } 
+                catch (Exception ex) 
+                {
+                    // Bắt lỗi nếu dịch vụ Mail cấu hình sai hoặc rớt mạng
+                    ModelState.AddModelError("", "Lỗi hệ thống gửi Mail OTP. Vui lòng thử lại sau.");
+                    return View(model);
+                }
 
                 TempData["UserId"]     = user.Id;
                 TempData["RememberMe"] = model.RememberMe;
@@ -84,6 +107,7 @@ namespace AutoCurriculum.Controllers
                 return RedirectToAction("VerifyOtp");
             }
 
+            // Ghi log sai mật khẩu
             await WriteLog(user?.Email ?? model.UsernameOrEmail, "LOGIN_FAILED",
                 model.UsernameOrEmail, "FAILED", "Sai tài khoản hoặc mật khẩu");
 

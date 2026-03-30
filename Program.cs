@@ -60,6 +60,21 @@ builder.Services.AddControllersWithViews();
 // ═════════════════════════════════════════════════════════════
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Gọi file SeedData vừa tạo ở trên
+        await AutoCurriculum.Data.SeedData.InitializeAsync(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Đã xảy ra lỗi khi tạo tài khoản Admin mặc định.");
+    }
+}
+
 // ── Seed Roles & Admin ────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
