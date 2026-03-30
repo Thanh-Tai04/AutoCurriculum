@@ -50,5 +50,20 @@ namespace AutoCurriculum.Areas.Admin.Controllers
 
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public async Task<IActionResult> Preview(int id)
+        {
+            var topic = await _context.Topics
+                .Include(t => t.Source)
+                .Include(t => t.Chapters)
+                    .ThenInclude(c => c.Lessons)
+                        .ThenInclude(l => l.Contents)
+                .FirstOrDefaultAsync(t => t.TopicId == id);
+
+            if (topic == null) return NotFound();
+
+            // Lưu ý: Đảm bảo tên thư mục là "Curriculum" hay "Topic" tùy theo cấu trúc thực tế của bạn
+            return PartialView("/Views/Export/ExportToPdf.cshtml", topic);
+        }
     }
 }

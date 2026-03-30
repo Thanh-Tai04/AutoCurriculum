@@ -1,7 +1,18 @@
 ﻿@model AutoCurriculum.Models.Topic
-
 @{
-    ViewData["Title"] = "Chi tiết giáo trình";
+    // Kiểm tra xem có phải Admin đang mở Preview không
+    bool isAdminPreview = ViewData["IsAdminPreview"] as bool? ?? false;
+    
+    // Nếu là Admin -> Dùng layout trắng tinh. Nếu là User -> Dùng layout gốc có Menu
+    if (isAdminPreview)
+    {
+        Layout = "~/Areas/Admin/Views/Shared/_PreviewLayout.cshtml";
+    }
+    else
+    {
+        Layout = "_Layout"; 
+        ViewData["Title"] = "Chi tiết Giáo trình";
+    }
 }
 
 <style>

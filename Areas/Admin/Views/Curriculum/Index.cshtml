@@ -56,7 +56,7 @@
                 <tr>
                     <th width="5%">ID</th>
                     <th width="35%">Tên Giáo trình & Mô tả</th>
-                    <th width="20%">email</th>
+                    <th width="20%">Email</th>
                     <th width="10%" class="text-center">Cấu trúc</th>
                     <th width="15%">Ngày tạo</th>
                     <th width="15%" class="text-center">Thao tác</th>
@@ -96,9 +96,15 @@
                             </td>
                             <td><span class="text-muted">@(topic.CreatedAt?.ToString("HH:mm - dd/MM/yyyy") ?? "N/A")</span></td>
                             <td class="text-center">
-                                <a href="/Curriculum/Details/@topic.TopicId" target="_blank" class="btn btn-outline-primary btn-sm btn-action me-1">
+
+                                <button type="button" 
+                                        class="btn btn-outline-primary btn-sm btn-action me-1 btn-preview" 
+                                        data-id="@topic.TopicId"
+                                        data-title="@topic.TopicName"
+                                        data-url="@Url.Action("Preview", "Curriculum", new { area = "Admin", id = topic.TopicId })">
                                     <i class="bi bi-eye-fill"></i> Xem
-                                </a>
+                                </button>
+                                
                                 <form action="/Admin/Curriculum/Delete" method="post" class="d-inline form-delete">
                                     <input type="hidden" name="id" value="@topic.TopicId" />
                                     <button type="button" class="btn btn-outline-danger btn-sm btn-action btn-delete">
@@ -118,22 +124,44 @@
     </div>
 </div>
 
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-light border-bottom-0">
+                <h5 class="modal-title fw-bold text-primary" id="previewModalLabel">
+                    <i class="bi bi-search me-2"></i> <span id="previewTitle">Preview Giáo trình</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body p-4 bg-white" id="previewModalBody" style="min-height: 400px;">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0 py-2">
+                <a href="#" id="openNewTabBtn" target="_blank" class="btn btn-outline-primary btn-sm me-auto">
+                    <i class="bi bi-box-arrow-up-right"></i> Mở tab mới
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng Preview</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // 1. Lọc tìm kiếm Real-time (Quét cả Tên giáo trình VÀ Email)
+        // 1. Lọc tìm kiếm Real-time
         document.getElementById('topicSearch').addEventListener('input', function() {
             let filter = this.value.toLowerCase();
             let rows = document.querySelectorAll('#topicTable tbody tr');
             
             rows.forEach(row => {
                 if (row.querySelector('strong')) {
-                    // Lấy chữ trong cột Tên Giáo Trình
                     let title = row.querySelector('strong').textContent.toLowerCase();
-                    // Lấy chữ trong cột Email (class email-cell)
                     let email = row.querySelector('.email-cell').textContent.toLowerCase();
                     
-                    // Nếu Tên HOẶC Email có chứa từ khóa thì hiển thị, ngược lại thì ẩn
                     if (title.includes(filter) || email.includes(filter)) {
                         row.style.display = '';
                     } else {
@@ -163,5 +191,53 @@
                 });
             });
         });
+
+        // 3. Xử lý nút PREVIEW chuyên nghiệp
+        $('.btn-preview').on('click', function () {
+            const id = $(this).data('id');
+            const title = $(this).data('title');
+            const url = $(this).data('url');
+            
+            // Cập nhật giao diện Modal
+            $('#previewTitle').text(title);
+            $('#openNewTabBtn').attr('href', url);
+            $('#previewModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2">Đang tải...</p></div>');
+            
+            // Mở Modal
+            const myModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            myModal.show();
+
+            // Gọi AJAX để lấy nội dung từ Controller
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (response) {
+                    $('#previewModalBody').html(response);
+                },
+                error: function (xhr) {
+                    $('#previewModalBody').html('<div class="alert alert-danger">Không thể tải nội dung. Lỗi: ' + xhr.status + '</div>');
+                }
+            });
+        });
+
+        // 4. Dọn dẹp Iframe khi đóng Modal
+        document.getElementById('previewModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('previewFrame').src = '';
+        });
     </script>
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="previewModalLabel">Xem trước giáo trình</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="previewModalBody">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 }

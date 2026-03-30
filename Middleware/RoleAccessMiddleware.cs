@@ -36,7 +36,32 @@ namespace AutoCurriculum.Middleware
             var path = context.Request.Path.Value?.ToLower() ?? "";
             var user = context.User;
 
-            // Bỏ qua các path public
+            // ══════════════════════════════════════════════════════
+            // 0. CHẶN ADMIN ĐI LẠC VÀO GIAO DIỆN CỦA USER
+            // ══════════════════════════════════════════════════════
+            if (user.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
+            {
+                // Những đường dẫn hợp lệ mà Admin được phép truy cập
+                bool isAllowedForAdmin = path.StartsWith("/admin") ||
+                                         path.StartsWith("/account/logout") ||
+                                         path.StartsWith("/account/accessdenied") ||
+                                         path.StartsWith("/lib") ||
+                                         path.StartsWith("/css") ||
+                                         path.StartsWith("/js") ||
+                                         path.StartsWith("/images") ||
+                                         path.EndsWith(".ico");
+
+                if (!isAllowedForAdmin)
+                {
+                    // Trả Admin về đúng "Lãnh địa" của mình
+                    context.Response.Redirect("/Admin/Dashboard");
+                    return;
+                }
+            }
+
+            // ══════════════════════════════════════════════════════
+            // Bỏ qua các path public (cho khách hoặc User thường)
+            // ══════════════════════════════════════════════════════
             if (PublicPaths.Any(p => path.StartsWith(p)))
             {
                 await _next(context);
@@ -44,7 +69,7 @@ namespace AutoCurriculum.Middleware
             }
 
             // ══════════════════════════════════════════════════════
-            // 1. CHẶN TRUY CẬP TRANG ADMIN
+            // 1. CHẶN TRUY CẬP TRANG ADMIN (Dành cho User thường)
             // ══════════════════════════════════════════════════════
             if (path.StartsWith("/admin"))
             {

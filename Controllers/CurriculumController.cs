@@ -46,7 +46,15 @@ namespace AutoCurriculum.Controllers
             var topic = _curriculumService.GetTopicWithChapters(id);
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (topic == null || topic.UserId != userId) return Forbid(); 
+            // Kiểm tra xem user hiện tại có phải là Admin không
+            bool isAdmin = User.IsInRole("Admin");
+
+            // NẾU topic không tồn tại 
+            // HOẶC (người đang xem KHÔNG PHẢI tác giả VÀ cũng KHÔNG PHẢI Admin) -> Bị cấm (Forbid)
+            if (topic == null || (topic.UserId != userId && !isAdmin)) 
+            {
+                return Forbid(); 
+            }
 
             return View(topic);
         }
