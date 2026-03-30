@@ -1,104 +1,259 @@
+@using System.Text.Json
 @model IEnumerable<AutoCurriculum.Models.SystemLog>
 @{
     Layout = "_AdminLayout"; 
     ViewData["Title"] = "Monitor - Giám sát hệ thống";
+
+    // --- TÍNH TOÁN SỐ LIỆU ---
+    var logList = Model?.ToList() ?? new List<AutoCurriculum.Models.SystemLog>();
+    var totalReq = logList.Count;
+    var successCount = logList.Count(l => l.Status == "Success");
+    var errorCount = totalReq - successCount;
+    var successRate = totalReq > 0 ? (successCount * 100.0 / totalReq).ToString("0.0") : "0";
+    var avgTime = totalReq > 0 ? logList.Average(l => l.ExecutionTimeMs).ToString("0") : "0";
+
+    var actionGroups = logList.GroupBy(l => l.Action)
+                              .Select(g => new { Action = string.IsNullOrEmpty(g.Key) ? "Không rõ" : g.Key, Count = g.Count() })
+                              .OrderByDescending(g => g.Count)
+                              .ToList();
+    var actionLabels = JsonSerializer.Serialize(actionGroups.Select(g => g.Action));
+    var actionData = JsonSerializer.Serialize(actionGroups.Select(g => g.Count));
 }
 
 <style>
+    .dashboard-wrapper { height: 100%; overflow-y: auto; overflow-x: hidden; padding-right: 8px; padding-bottom: 30px; }
+    .dashboard-wrapper::-webkit-scrollbar { width: 8px; }
+    .dashboard-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+    .dashboard-wrapper::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
+    .dashboard-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+    .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
+    .stat-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.5rem; }
+    
+    .chart-container { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 20px; }
+    .chart-wrapper { position: relative; height: 250px; width: 100%; }
+
+    /* CSS BẢNG VÀ TÌM KIẾM */
     .status-success { color: #198754; font-weight: 600; }
     .status-error { color: #dc3545; font-weight: 600; }
-    .badge-action {
-        background-color: #e9ecef; color: #495057; padding: 5px 12px;
-        border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 600; 
-    }
-    code { 
-        color: #d63384; background-color: #f8f9fa; padding: 4px 8px; border-radius: 4px; 
-        font-family: 'Consolas', monospace;
-    }
+    .badge-action { background-color: #e9ecef; color: #495057; padding: 5px 12px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 600; }
+    code { color: #d63384; background-color: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-family: 'Consolas', monospace; }
     
-    .page-header { flex-shrink: 0; margin-bottom: 20px; }
+    .table-container {
+        background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+        overflow-x: auto;
+        overflow-y: auto; /* Bật thanh cuộn dọc cho bảng */
+        max-height: 450px; /* Khóa cứng chiều cao để bảng cuộn bên trong */
+    }
+    .table td, .table th { vertical-align: middle; white-space: nowrap; padding: 14px 20px; }
+    .col-message { white-space: normal !important; min-width: 300px; }
     
-    .table-scroll-container {
-        flex-grow: 1; 
-        overflow-y: auto; 
-        overflow-x: auto; /* Bật thanh cuộn ngang nếu bảng quá rộng */
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        max-height: calc(100vh - 120px); 
+    /* FIX LỖI MẤT STICKY HEADER */
+    .table thead th { 
+        position: sticky; top: 0; z-index: 10; 
+        background-color: #f8f9fa; border-bottom: 2px solid #e9ecef; text-transform: uppercase; font-size: 0.85rem; color: #6c757d; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Bóng đổ khi cuộn */
     }
 
-    /* ÉP CÁC CỘT KHÔNG ĐƯỢC RỚT DÒNG (CHỮ DỌC) */
-    .table td, .table th {
-        vertical-align: middle;
-        white-space: nowrap; /* Sửa triệt để lỗi chữ rớt thành cột dọc */
-        padding: 16px 20px;
-    }
-    
-    /* Riêng cột thông báo cho phép rớt dòng bình thường nếu quá dài */
-    .col-message {
-        white-space: normal !important;
-        min-width: 300px;
-    }
-
-    .table thead th {
-        position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;
-        border-bottom: 2px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
-        text-transform: uppercase; font-size: 0.85rem; color: #6c757d;
-    }
-
-    .table-scroll-container::-webkit-scrollbar { width: 8px; height: 8px; }
-    .table-scroll-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
-    .table-scroll-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
-    .table-scroll-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    /* Custom thanh cuộn của bảng */
+    .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-container::-webkit-scrollbar-track { background: #f8f9fa; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb { background: #cbd3da; border-radius: 8px; }
+    .table-container::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
 </style>
 
-<div class="page-header">
-    <h2 class="fw-bold mb-1">🚀 Hệ thống Monitor</h2>
-    <p class="text-muted mb-0">Giám sát trực tiếp hoạt động của AI và Wikipedia</p>
-</div>
+<div class="dashboard-wrapper">
+    
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">🚀 Dashboard Monitor</h2>
+            <p class="text-muted mb-0">Giám sát sức khỏe hệ thống và tần suất gọi AI</p>
+        </div>
+        <button class="btn btn-primary shadow-sm" onclick="location.reload();"><i class="bi bi-arrow-clockwise"></i> Cập nhật số liệu</button>
+    </div>
 
-<div class="table-scroll-container">
-    <table class="table table-hover mb-0">
-        <thead>
-            <tr>
-                <th>Thời gian</th>
-                <th>Người dùng</th>
-                <th>Hành động</th>
-                <th>Từ khóa</th>
-                <th>Trạng thái</th>
-                <th>Xử lý</th>
-                <th class="col-message">Thông báo</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var log in Model)
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3 mb-md-0">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div><h6 class="text-muted mb-1 fw-bold">TỔNG YÊU CẦU</h6><h3 class="mb-0 fw-bold">@totalReq</h3></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 mb-md-0">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success me-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <div><h6 class="text-muted mb-1 fw-bold">TỶ LỆ THÀNH CÔNG</h6><h3 class="mb-0 fw-bold">@successRate%</h3></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3 mb-md-0">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger me-3"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div><h6 class="text-muted mb-1 fw-bold">SỐ LỖI HỆ THỐNG</h6><h3 class="mb-0 fw-bold">@errorCount</h3></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info me-3"><i class="bi bi-stopwatch-fill"></i></div>
+                    <div><h6 class="text-muted mb-1 fw-bold">TỐC ĐỘ XỬ LÝ</h6><h3 class="mb-0 fw-bold">@avgTime <small class="fs-6">ms</small></h3></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h6 class="fw-bold text-muted mb-3 text-center">TỶ LỆ THÀNH CÔNG vs LỖI</h6>
+                <div class="chart-wrapper">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h6 class="fw-bold text-muted mb-3 text-center">PHÂN BỔ THEO HÀNH ĐỘNG (ACTIONS)</h6>
+                <div class="chart-wrapper">
+                    <canvas id="actionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+        <h6 class="fw-bold text-muted mb-0">LỊCH SỬ HOẠT ĐỘNG GẦN ĐÂY</h6>
+        
+        <div class="input-group shadow-sm" style="width: 320px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="emailFilter" class="form-control border-start-0 ps-0" placeholder="Lọc theo Email người dùng...">
+        </div>
+    </div>
+
+    <div class="table-container mb-4">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Người dùng</th>
+                    <th>Hành động</th>
+                    <th>Từ khóa</th>
+                    <th>Trạng thái</th>
+                    <th>Xử lý</th>
+                    <th class="col-message">Thông báo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (logList.Any())
                 {
-                    <tr>
-                        <td><span class="text-muted">@log.CreatedAt.ToString("HH:mm:ss dd/MM")</span></td>
-                        <td><span class="text-primary fw-bold">@(string.IsNullOrEmpty(log.UserEmail) ? "Khách" : log.UserEmail)</span></td>
-                        <td><span class="badge-action">@log.Action</span></td>
-                        <td><code>@log.Keyword</code></td>
-                        <td class="@(log.Status == "Success" ? "status-success" : "status-error")">
-                            @(log.Status == "Success" ? "● Thành công" : "● Lỗi")
-                        </td>
-                        <td><span class="fw-semibold">@log.ExecutionTimeMs ms</span></td>
-                        <td class="small text-muted col-message">@log.Message</td>
-                    </tr>
+                    foreach (var log in logList)
+                    {
+                        <tr>
+                            <td><span class="text-muted">@log.CreatedAt.ToString("HH:mm:ss dd/MM")</span></td>
+                            <td><span class="text-primary fw-bold email-cell">@(string.IsNullOrEmpty(log.UserEmail) ? "Khách" : log.UserEmail)</span></td>
+                            <td><span class="badge-action">@log.Action</span></td>
+                            <td><code>@log.Keyword</code></td>
+                            <td class="@(log.Status == "Success" ? "status-success" : "status-error")">
+                                @(log.Status == "Success" ? "● Thành công" : "● Lỗi")
+                            </td>
+                            <td><span class="fw-semibold">@log.ExecutionTimeMs ms</span></td>
+                            <td class="small text-muted col-message">@log.Message</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="7" class="text-center py-5 text-muted empty-row">Chưa có dữ liệu nhật ký nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 1. BIỂU ĐỒ TRÒN
+        const ctxStatus = document.getElementById('statusChart').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['Thành công', 'Lỗi'],
+                datasets: [{
+                    data: [@successCount, @errorCount],
+                    backgroundColor: ['#198754', '#dc3545'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '65%'
+            }
+        });
+
+        // 2. BIỂU ĐỒ CỘT
+        const actionLabels = @Html.Raw(actionLabels);
+        const actionData = @Html.Raw(actionData);
+        
+        const ctxAction = document.getElementById('actionChart').getContext('2d');
+        new Chart(ctxAction, {
+            type: 'bar',
+            data: {
+                labels: actionLabels,
+                datasets: [{
+                    label: 'Số lần gọi',
+                    data: actionData,
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: '#0d6efd',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
                 }
             }
-            else
-            {
-                <tr><td colspan="7" class="text-center py-5 text-muted">Chưa có dữ liệu nhật ký nào.</td></tr>
-            }
-        </tbody>
-    </table>
-</div>
+        });
 
-@section Scripts {
-    <script>
+        // 3. HÀM LỌC EMAIL
+        function applyEmailFilter() {
+            const filterValue = document.getElementById('emailFilter').value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                // Kiểm tra xem dòng này có phải là dòng "Chưa có dữ liệu" không
+                if (!row.querySelector('.empty-row')) {
+                    const emailCell = row.querySelector('.email-cell');
+                    if (emailCell) {
+                        const emailText = emailCell.textContent.toLowerCase();
+                        // Nếu email có chứa chuỗi nhập vào thì hiện, không thì ẩn
+                        if (emailText.includes(filterValue)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        }
+
+        // Lắng nghe sự kiện khi người dùng gõ phím vào ô tìm kiếm
+        document.getElementById('emailFilter').addEventListener('input', applyEmailFilter);
+
+        // 4. TỰ ĐỘNG CẬP NHẬT BẢNG MỖI 3 GIÂY
         const refreshInterval = 3000;
         setInterval(() => {
             fetch(window.location.href)
@@ -107,6 +262,9 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
+                    
+                    // CỰC KỲ QUAN TRỌNG: Gọi lại hàm lọc sau khi đã thay ruột bảng bằng dữ liệu mới
+                    applyEmailFilter();
                 })
                 .catch(err => console.error('Lỗi tự động cập nhật:', err));
         }, refreshInterval);
