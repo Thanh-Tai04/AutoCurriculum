@@ -8,11 +8,11 @@ namespace AutoCurriculum.Controllers
     {
         public IActionResult Index()
         {
-            // Nếu khách đã đăng nhập (có thẻ bài), đá thẳng vào trang Giáo trình
-            if (User.Identity != null && User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Index", "Curriculum");
-            }
+            // // Nếu khách đã đăng nhập (có thẻ bài), đá thẳng vào trang Giáo trình
+            // if (User.Identity != null && User.Identity.IsAuthenticated)
+            // {
+            //     return RedirectToAction("Index", "Curriculum");
+            // }
 
             // Nếu chưa đăng nhập, cho xem quảng cáo (Landing Page)
             return View();

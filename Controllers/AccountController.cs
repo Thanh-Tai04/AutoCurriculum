@@ -72,7 +72,7 @@ namespace AutoCurriculum.Controllers
 
                 // 🌟 ĐẶC QUYỀN ADMIN: Bỏ qua OTP, đăng nhập thẳng!
                 var isRoleAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                if (isRoleAdmin || user.Email == "admin@autocurriculum.com")
+                if (isRoleAdmin || user.Email == "tainguyen280404@gmail.com")
                 {
                     await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
                     

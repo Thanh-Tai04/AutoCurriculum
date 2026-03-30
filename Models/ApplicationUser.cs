@@ -8,5 +8,6 @@ namespace AutoCurriculum.Models
         // Thêm các cột tùy chỉnh cho Đồ án của bạn
         public string? FullName { get; set; } 
         // public string StudentId { get; set; } // Nếu thích có thể mở comment dòng này để lưu MSSV
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

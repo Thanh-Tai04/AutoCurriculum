@@ -50,12 +50,26 @@
         </div>
     </div>
 
+    @* --- PHẦN HIỂN THỊ THÔNG BÁO BOOTSTRAP --- *@
+<div class="flex-shrink-0">
     @if (TempData["Message"] != null)
     {
-        <div class="alert alert-success shadow-sm rounded-3 border-start border-success border-4 mb-3 flex-shrink-0">
+        <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 border-start border-success border-4 mb-3" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
             @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 border-start border-danger border-4 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Lỗi:</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+</div>
 
     <div class="table-container flex-grow-1">
         <table class="table table-hover mb-0" id="userTable">
@@ -172,5 +186,13 @@
                 });
             });
         });
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
     </script>
+
 }

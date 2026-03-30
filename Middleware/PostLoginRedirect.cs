@@ -15,7 +15,7 @@ namespace AutoCurriculum.Middleware
                 return "/Admin/Dashboard";
 
             // Mặc định → trang chủ User
-            return "/Home/Index";
+            return "/Curriculum/Index";
         }
     }
 }

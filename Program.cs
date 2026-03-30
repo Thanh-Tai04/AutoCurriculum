@@ -89,7 +89,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Tạo tài khoản Admin mặc định
-    var adminEmail = "admin@autocurriculum.com";
+    var adminEmail = "tainguyen280404@gmail.com";
     if (await userManager.FindByEmailAsync(adminEmail) == null)
     {
         var admin = new ApplicationUser
@@ -99,7 +99,7 @@ using (var scope = app.Services.CreateScope())
             FullName = "Administrator",
             EmailConfirmed = true
         };
-        var result = await userManager.CreateAsync(admin, "Admin@123456");
+        var result = await userManager.CreateAsync(admin, "Admin@");
         if (result.Succeeded)
             await userManager.AddToRoleAsync(admin, "Admin");
     }
