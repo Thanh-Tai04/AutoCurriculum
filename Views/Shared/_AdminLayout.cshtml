@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { 
+            background-color: #f4f7f6; 
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 210px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #212529;
+            color: white;
+            z-index: 1050;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* Khi thu nhỏ */
+        .sidebar.collapsed { width: 80px; }
+        
+        /* ── KHU VỰC LOGO ── */
+        .logo-admin {
+            height: 120px;
+            padding: 15px;
+            border-bottom: 1px solid #343a40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-large { max-width: 200px; max-height: 200px; object-fit: contain; }
+        .logo-small { width: 70px; height: 70px; object-fit: contain; display: none; }
+        
+        .sidebar.collapsed .logo-large { display: none; }
+        .sidebar.collapsed .logo-small { display: block; }
+
+        /* ── MENU LINKS ── */
+        .sidebar-nav { flex-grow: 1; padding-top: 15px; }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8); padding: 12px 20px; display: flex; align-items: center; gap: 15px; white-space: nowrap; transition: 0.2s;
+        }
+        .sidebar .nav-link i { font-size: 1.25rem; min-width: 24px; text-align: center; }
+        .sidebar.collapsed .nav-link span { display: none; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #343a40; color: #0d6efd; border-left: 4px solid #0d6efd; }
+
+        /* ── MAIN CONTENT ── */
+        .main-content {
+            margin-left: 260px;
+            height: 100vh;
+            padding: 20px 30px;
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column; 
+        }
+        .main-content.expanded { margin-left: 80px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar collapsed" id="sidebar"> <div class="logo-admin">
+            <img src="~/images/logo.png" alt="AutoCurriculum" class="logo-large rounded" />
+            <img src="~/images/logo.png" alt="Icon" class="logo-small rounded" />
+        </div>
+
+        <nav class="nav flex-column sidebar-nav">
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")" href="/Admin/Dashboard">
+                <i class="bi bi-speedometer2"></i> <span>Hệ thống Monitor</span>
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Config" ? "active" : "")" href="/Admin/Config">
+                <i class="bi bi-gear-fill"></i> <span>Cấu hình Prompt AI</span>
+            </a>
+            <hr class="mx-3 text-secondary border-secondary">
+            <a class="nav-link" href="/">
+                <i class="bi bi-house-door"></i> <span>Quay lại Web chính</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content expanded" id="mainContent">
+        @RenderBody()
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        // Khi rê chuột VÀO thanh điều hướng -> Mở rộng
+        sidebar.addEventListener('mouseenter', function() {
+            sidebar.classList.remove('collapsed');
+            mainContent.classList.remove('expanded');
+        });
+
+        // Khi rê chuột RA KHỎI thanh điều hướng -> Thu nhỏ
+        sidebar.addEventListener('mouseleave', function() {
+            sidebar.classList.add('collapsed');
+            mainContent.classList.add('expanded');
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

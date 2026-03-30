@@ -1,136 +1,114 @@
 @model IEnumerable<AutoCurriculum.Models.SystemLog>
 @{
-    Layout = null;
+    Layout = "_AdminLayout"; 
+    ViewData["Title"] = "Monitor - Giám sát hệ thống";
 }
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Monitor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { 
-            background-color: #f4f7f6; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .table {
-            margin-bottom: 0;
-        }
-        .table th {
-            background-color: #f8f9fa;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            color: #6c757d;
-            padding: 16px 20px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        .table td {
-            padding: 16px 20px;
-            vertical-align: middle;
-        }
-        .status-success { color: #198754; font-weight: 600; }
-        .status-error { color: #dc3545; font-weight: 600; }
-        .badge-action {
-            background-color: #e9ecef;
-            color: #495057;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .btn-config {
-            border-radius: 50rem;
-            padding: 8px 24px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
-        }
-        .btn-config:hover {
-            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-            transform: translateY(-1px);
-            transition: all 0.2s ease-in-out;
-        }
-    </style>
-</head>
-<body class="py-5">
-    <div class="container-fluid px-4 px-lg-5"> 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1">🚀 Hệ thống Monitor</h2>
-                <p class="text-muted mb-0">Giám sát trực tiếp hoạt động của AI và Wikipedia</p>
-            </div>
-            <a href="/Admin/Config" class="btn btn-primary btn-config">⚙️ Cấu hình Prompt</a>
-        </div>
 
-        <div class="card overflow-hidden">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Thời gian</th>
-                                <th>Người dùng</th>
-                                <th>Hành động</th>
-                                <th>Từ khóa</th>
-                                <th>Trạng thái</th>
-                                <th>Xử lý</th>
-                                <th width="30%">Thông báo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model != null && Model.Any())
-                            {
-                                foreach (var log in Model)
-                                {
-                                    <tr>
-                                        <td><span class="text-muted">@log.CreatedAt.ToString("HH:mm:ss dd/MM")</span></td>
-                                        <td>
-                                            <span class="text-primary fw-bold">@(string.IsNullOrEmpty(log.UserEmail) ? "Khách" : log.UserEmail)</span>
-                                        </td>
-                                        <td><span class="badge-action">@log.Action</span></td>
-                                        <td><code>@log.Keyword</code></td>
-                                        <td class="@(log.Status == "Success" ? "status-success" : "status-error")">
-                                            @(log.Status == "Success" ? "● Thành công" : "● Lỗi")
-                                        </td>
-                                        <td><span class="fw-semibold">@log.ExecutionTimeMs ms</span></td>
-                                        <td class="small text-muted">@log.Message</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">Chưa có dữ liệu nhật ký nào.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+    .status-success { color: #198754; font-weight: 600; }
+    .status-error { color: #dc3545; font-weight: 600; }
+    .badge-action {
+        background-color: #e9ecef; color: #495057; padding: 5px 12px;
+        border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 600; 
+    }
+    code { 
+        color: #d63384; background-color: #f8f9fa; padding: 4px 8px; border-radius: 4px; 
+        font-family: 'Consolas', monospace;
+    }
+    
+    .page-header { flex-shrink: 0; margin-bottom: 20px; }
+    
+    .table-scroll-container {
+        flex-grow: 1; 
+        overflow-y: auto; 
+        overflow-x: auto; /* Bật thanh cuộn ngang nếu bảng quá rộng */
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        max-height: calc(100vh - 120px); 
+    }
 
+    /* ÉP CÁC CỘT KHÔNG ĐƯỢC RỚT DÒNG (CHỮ DỌC) */
+    .table td, .table th {
+        vertical-align: middle;
+        white-space: nowrap; /* Sửa triệt để lỗi chữ rớt thành cột dọc */
+        padding: 16px 20px;
+    }
+    
+    /* Riêng cột thông báo cho phép rớt dòng bình thường nếu quá dài */
+    .col-message {
+        white-space: normal !important;
+        min-width: 300px;
+    }
+
+    .table thead th {
+        position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;
+        border-bottom: 2px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        text-transform: uppercase; font-size: 0.85rem; color: #6c757d;
+    }
+
+    .table-scroll-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-scroll-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+    .table-scroll-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
+    .table-scroll-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+</style>
+
+<div class="page-header">
+    <h2 class="fw-bold mb-1">🚀 Hệ thống Monitor</h2>
+    <p class="text-muted mb-0">Giám sát trực tiếp hoạt động của AI và Wikipedia</p>
+</div>
+
+<div class="table-scroll-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Thời gian</th>
+                <th>Người dùng</th>
+                <th>Hành động</th>
+                <th>Từ khóa</th>
+                <th>Trạng thái</th>
+                <th>Xử lý</th>
+                <th class="col-message">Thông báo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var log in Model)
+                {
+                    <tr>
+                        <td><span class="text-muted">@log.CreatedAt.ToString("HH:mm:ss dd/MM")</span></td>
+                        <td><span class="text-primary fw-bold">@(string.IsNullOrEmpty(log.UserEmail) ? "Khách" : log.UserEmail)</span></td>
+                        <td><span class="badge-action">@log.Action</span></td>
+                        <td><code>@log.Keyword</code></td>
+                        <td class="@(log.Status == "Success" ? "status-success" : "status-error")">
+                            @(log.Status == "Success" ? "● Thành công" : "● Lỗi")
+                        </td>
+                        <td><span class="fw-semibold">@log.ExecutionTimeMs ms</span></td>
+                        <td class="small text-muted col-message">@log.Message</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7" class="text-center py-5 text-muted">Chưa có dữ liệu nhật ký nào.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
     <script>
-        const refreshInterval = 3000; 
-
+        const refreshInterval = 3000;
         setInterval(() => {
-            fetch(window.location.href) 
+            fetch(window.location.href)
                 .then(response => response.text())
                 .then(html => {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
-                    const newTbody = doc.querySelector('tbody').innerHTML;
-                    document.querySelector('tbody').innerHTML = newTbody;
+                    document.querySelector('tbody').innerHTML = doc.querySelector('tbody').innerHTML;
                 })
-                .catch(err => console.error('Lỗi khi tự động cập nhật:', err));
+                .catch(err => console.error('Lỗi tự động cập nhật:', err));
         }, refreshInterval);
     </script>
-</body>
-</html>
+}

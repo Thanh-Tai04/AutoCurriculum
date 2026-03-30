@@ -1,122 +1,73 @@
 @model IEnumerable<AutoCurriculum.Models.PromptConfig>
 @{
-    Layout = null;
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Cấu hình Prompt";
 }
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cấu hình Prompt AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { 
-            background-color: #f4f7f6; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .table {
-            margin-bottom: 0;
-        }
-        .table th {
-            background-color: #f8f9fa;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            color: #6c757d;
-            padding: 16px 20px;
-            border-bottom: 2px solid #e9ecef;
-        }
-        .table td {
-            padding: 16px 20px;
-            vertical-align: middle;
-        }
-        .prompt-desc {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 6px;
-            line-height: 1.5;
-        }
-        .code-badge {
-            background-color: #e9ecef;
-            color: #495057;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .btn-edit {
-            border-radius: 50rem; /* Bo tròn hoàn toàn nút bấm */
-            padding: 6px 20px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
-        }
-        .btn-edit:hover {
-            box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-            transform: translateY(-1px);
-            transition: all 0.2s ease-in-out;
-        }
-    </style>
-</head>
-<body class="py-5">
-    <div class="container"> <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1">⚙️ Quản lý Prompt AI</h2>
-                <p class="text-muted mb-0">Tùy chỉnh các câu lệnh giao tiếp với mô hình AI</p>
-            </div>
-            <a href="/Admin/Dashboard" class="btn btn-outline-secondary px-4 fw-bold">🔙 Quay lại Monitor</a>
-        </div>
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success shadow-sm rounded-3 border-0 border-start border-success border-4 mb-4">
-                <strong>Thành công!</strong> @TempData["SuccessMessage"]
-            </div>
-        }
+<style>
+    .prompt-desc { font-size: 0.85rem; color: #6c757d; margin-top: 6px; line-height: 1.5; }
+    .code-badge { background-color: #e9ecef; color: #495057; padding: 6px 12px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 600; }
+    .btn-edit { border-radius: 50rem; padding: 6px 20px; font-weight: 600; box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2); }
+    .btn-edit:hover { box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3); transform: translateY(-1px); transition: all 0.2s ease-in-out; }
+    
+    /* Đồng bộ CSS bảng cuộn giống Dashboard */
+    .page-header { flex-shrink: 0; margin-bottom: 20px; }
+    .table-scroll-container {
+        flex-grow: 1; overflow-y: auto; overflow-x: auto; background: #fff;
+        border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        max-height: calc(100vh - 120px); 
+    }
+    .table td, .table th { vertical-align: middle; padding: 16px 20px; }
+    .table thead th {
+        position: sticky; top: 0; background-color: #f8f9fa; z-index: 10;
+        border-bottom: 2px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        text-transform: uppercase; font-size: 0.85rem; color: #6c757d;
+    }
+    .table-scroll-container::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-scroll-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 8px; }
+    .table-scroll-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 8px; }
+    .table-scroll-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+</style>
 
-        <div class="card overflow-hidden">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th width="45%">Tên chức năng & Mô tả</th>
-                                <th width="20%">Mã tham chiếu (Code)</th>
-                                <th width="20%">Cập nhật lần cuối</th>
-                                <th width="15%" class="text-center">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>
-                                        <strong class="fs-6 text-primary">@item.Name</strong>
-                                        <div class="prompt-desc">@item.Description</div>
-                                    </td>
-                                    <td>
-                                        <span class="code-badge">@item.PromptCode</span>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted">@item.UpdatedAt.ToString("HH:mm - dd/MM/yyyy")</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="/Admin/Config/Edit/@item.Id" class="btn btn-sm btn-primary btn-edit">
-                                            ✏️ Chỉnh sửa
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="page-header">
+    <h2 class="fw-bold mb-1">⚙️ Quản lý Prompt AI</h2>
+    <p class="text-muted mb-0">Tùy chỉnh các câu lệnh giao tiếp với mô hình AI</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success shadow-sm rounded-3 border-0 border-start border-success border-4 mb-4 flex-shrink-0">
+        <strong>Thành công!</strong> @TempData["SuccessMessage"]
     </div>
-</body>
-</html>
+}
+
+<div class="table-scroll-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th width="45%">Tên chức năng & Mô tả</th>
+                <th width="20%">Mã tham chiếu (Code)</th>
+                <th width="20%">Cập nhật lần cuối</th>
+                <th width="15%" class="text-center">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong class="fs-6 text-primary">@item.Name</strong>
+                        <div class="prompt-desc">@item.Description</div>
+                    </td>
+                    <td><span class="code-badge">@item.PromptCode</span></td>
+                    <td><span class="text-muted">@item.UpdatedAt.ToString("HH:mm - dd/MM/yyyy")</span></td>
+                    <td class="text-center">
+                        <a href="/Admin/Config/Edit/@item.Id" class="btn btn-sm btn-primary btn-edit">
+                            Chỉnh sửa
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
