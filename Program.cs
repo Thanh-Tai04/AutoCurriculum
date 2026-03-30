@@ -6,44 +6,37 @@ using AutoCurriculum.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using AutoCurriculum.Services;
+using AutoCurriculum.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ─────────────────────────────────────────────────
+// ── Database ──────────────────────────────────────────────────
 builder.Services.AddDbContext<AutoCurriculumDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── HttpClient (đặt header User-Agent cho Wikipedia) ─────────
+// ── HttpClient ────────────────────────────────────────────────
 builder.Services.AddHttpClient("Wikipedia", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent", "AutoCurriculumApp/1.0 (contact@example.com)");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-// ── Repositories ─────────────────────────────────────────────
+// ── Repositories ──────────────────────────────────────────────
 builder.Services.AddScoped<ITopicRepository, TopicRepository>();
 builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
 builder.Services.AddScoped<ISectionRepository, SectionRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<IContentRepository, ContentRepository>();
 
-// ── External Services ─────────────────────────────────────────
+// ── Services ──────────────────────────────────────────────────
 builder.Services.AddScoped<IWikipediaService, WikipediaService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
-
-// ── Business Services ─────────────────────────────────────────
 builder.Services.AddScoped<ICurriculumService, CurriculumService>();
-
-// ── Bưu tá gửi mail OTP ───────────────────────────────────────
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// ── MVC ───────────────────────────────────────────────────────
-builder.Services.AddControllersWithViews();
-
-// 1. ĐĂNG KÝ IDENTITY CHÍNH THỨC
+// ── Identity ──────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    // Cấu hình mật khẩu đơn giản lúc làm đồ án
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
@@ -51,21 +44,53 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
 })
 .AddEntityFrameworkStores<AutoCurriculumDbContext>()
-.AddDefaultTokenProviders(); // <--- CHÌA KHÓA TẠO OTP 6 SỐ NẰM Ở ĐÂY
+.AddDefaultTokenProviders();
 
-// 2. Cấu hình Cookie (Khi bị [Authorize] chặn, tự động văng ra trang Login)
+// ── Cookie ────────────────────────────────────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(8); // ← Thêm: session 8 tiếng
 });
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllersWithViews();
 
-
-
+// ═════════════════════════════════════════════════════════════
 var app = builder.Build();
 
+// ── Seed Roles & Admin ────────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    // Tạo 2 roles
+    foreach (var role in new[] { "Admin", "User" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+
+    // Tạo tài khoản Admin mặc định
+    var adminEmail = "admin@autocurriculum.com";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var admin = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            FullName = "Administrator",
+            EmailConfirmed = true
+        };
+        var result = await userManager.CreateAsync(admin, "Admin@123456");
+        if (result.Succeeded)
+            await userManager.AddToRoleAsync(admin, "Admin");
+    }
+}
+
+// ── Middleware Pipeline (THỨ TỰ RẤT QUAN TRỌNG) ──────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -74,25 +99,17 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 
-// Route dành cho Area (Admin)
+app.UseRouting();        // ← Phải trước Authentication
+app.UseAuthentication(); // ← Phải trước Authorization
+app.UseAuthorization();
+app.UseRoleAccessMiddleware();
+
+// ── Routes ────────────────────────────────────────────────────
 app.MapControllerRoute(
     name: "MyArea",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
-
-// Route mặc định cho người dùng (Client)
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-    
-// ĐĂNG KÝ ROTATIVA (Bắt buộc phải nằm dưới UseStaticFiles)
-Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
-
-app.UseRouting();
-
-// BẮT BUỘC PHẢI CÓ DÒNG NÀY TRƯỚC AUTHORIZATION ĐỂ WEB NHẬN DIỆN USER ĐÃ ĐĂNG NHẬP
-app.UseAuthentication(); 
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

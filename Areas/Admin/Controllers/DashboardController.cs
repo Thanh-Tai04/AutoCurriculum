@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoCurriculum.Models; 
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoCurriculum.Areas.Admin.Controllers
 {
-    [Area("Admin")] 
+    [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class DashboardController : Controller
     {
         private readonly AutoCurriculumDbContext _context;

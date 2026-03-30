@@ -1,0 +1,204 @@
+@{
+    ViewData["Title"] = "Truy Cập Bị Từ Chối";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — AutoCurriculum</title>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        :root {
+            --brand-primary: #1e3a5f;
+            --brand-accent:  #e63946;
+            --brand-light:   #f8f9fa;
+            --shield-size:   110px;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef2f7 0%, #dce6f5 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* ── Decorative blobs ── */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .18;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .blob-1 { width: 420px; height: 420px; background: var(--brand-primary); top: -120px; left: -120px; }
+        .blob-2 { width: 320px; height: 320px; background: var(--brand-accent);  bottom: -80px; right: -80px; }
+
+        /* ── Card ── */
+        .error-card {
+            position: relative;
+            z-index: 1;
+            max-width: 520px;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 60px rgba(30,58,95,.15);
+            overflow: hidden;
+        }
+
+        /* ── Shield icon area ── */
+        .shield-wrap {
+            width: var(--shield-size);
+            height: var(--shield-size);
+            background: #fff3f4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            animation: pulse-ring 2.4s ease-in-out infinite;
+        }
+        .shield-wrap i {
+            font-size: 3rem;
+            color: var(--brand-accent);
+        }
+
+        @@keyframes pulse-ring {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,.35); }
+            50%       { box-shadow: 0 0 0 14px rgba(230,57,70,0); }
+        }
+
+        /* ── Error code ── */
+        .error-code {
+            font-size: 4.5rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: var(--brand-primary);
+            line-height: 1;
+        }
+
+        /* ── Divider pill ── */
+        .divider-pill {
+            display: inline-block;
+            width: 48px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--brand-accent);
+            margin: .75rem 0 1rem;
+        }
+
+        /* ── Info list ── */
+        .reason-list li {
+            padding: .35rem 0;
+            font-size: .93rem;
+            color: #495057;
+        }
+        .reason-list li i {
+            color: var(--brand-accent);
+            width: 1.4rem;
+        }
+
+        /* ── Buttons ── */
+        .btn-home {
+            background: var(--brand-primary);
+            border: none;
+            padding: .65rem 2rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            transition: background .2s, transform .15s;
+        }
+        .btn-home:hover {
+            background: #14294a;
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            border: 2px solid var(--brand-primary);
+            color: var(--brand-primary);
+            padding: .6rem 1.6rem;
+            border-radius: .6rem;
+            font-weight: 600;
+            transition: all .2s;
+        }
+        .btn-back:hover {
+            background: var(--brand-primary);
+            color: #fff;
+        }
+
+        /* ── Footer note ── */
+        .footer-note {
+            font-size: .8rem;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100">
+
+    <!-- Background blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="error-card bg-white w-100 mx-3">
+
+        <!-- Top accent bar -->
+        <div style="height:5px; background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-accent) 100%);"></div>
+
+        <div class="p-4 p-md-5 text-center">
+
+            <!-- Shield icon -->
+            <div class="shield-wrap">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+
+            <!-- Error code -->
+            <div class="error-code">403</div>
+            <div class="divider-pill"></div>
+
+            <!-- Title & description -->
+            <h1 class="h4 fw-bold text-dark mb-2">Truy Cập Bị Từ Chối</h1>
+            <p class="text-muted mb-4">
+                Bạn không có quyền truy cập vào trang này.<br/>
+                Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.
+            </p>
+
+            <!-- Reason list -->
+            <ul class="reason-list list-unstyled text-start d-inline-block mb-4">
+                <li><i class="bi bi-x-circle-fill me-1"></i> Tài khoản không có vai trò phù hợp</li>
+                <li><i class="bi bi-x-circle-fill me-1"></i> Khu vực chỉ dành cho Admin</li>
+                <li><i class="bi bi-x-circle-fill me-1"></i> Phiên đăng nhập có thể đã hết hạn</li>
+            </ul>
+
+            <!-- Action buttons -->
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                <a href="/Home/Index" class="btn btn-home btn-lg text-white">
+                    <i class="bi bi-house-fill me-1"></i> Về Trang Chủ
+                </a>
+                <a href="javascript:history.back()" class="btn btn-back btn-lg">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="border-top px-4 py-3 text-center bg-light">
+            <span class="footer-note">
+                <i class="bi bi-lock-fill me-1"></i>
+                AutoCurriculum &mdash; Hệ thống bảo mật đang hoạt động bình thường
+            </span>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

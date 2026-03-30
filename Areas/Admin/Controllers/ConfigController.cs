@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using AutoCurriculum.Models;
 using System.Linq;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoCurriculum.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin")]
     public class ConfigController : Controller
     {
         private readonly AutoCurriculumDbContext _context;

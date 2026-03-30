@@ -8,7 +8,7 @@ using System; // Thêm thư viện này để dùng DateTimeOffset
 namespace AutoCurriculum.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class UserController : Controller
     {
         private readonly AutoCurriculumDbContext _context;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace AutoCurriculum.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize] // Yêu cầu phải đăng nhập
+    [Authorize(Roles = "Admin")]
     public class CurriculumController : Controller
     {
         private readonly AutoCurriculumDbContext _context;
