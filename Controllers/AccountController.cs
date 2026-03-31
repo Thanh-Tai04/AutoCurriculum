@@ -234,7 +234,7 @@ namespace AutoCurriculum.Controllers
                         // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
                         await WriteLog(user.Email, "Đăng ký", user.Email, "Success", "Đăng ký tài khoản mới thành công");
 
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("Index", "Curriculum");
                     }
 
                     foreach (var error in result.Errors)
@@ -378,7 +378,7 @@ namespace AutoCurriculum.Controllers
                 });
                 await _db.SaveChangesAsync();
             }
-            catch { /* Không để lỗi log crash app */ }
+            catch {  }
         }
     }
 }
