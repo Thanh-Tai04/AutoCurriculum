@@ -17,7 +17,7 @@ public partial class CurriculumHistory
 
     public string? ErrorMessage { get; set; }
 
-    public virtual User? CreatedByNavigation { get; set; }
+    // public virtual User? CreatedByNavigation { get; set; }
 
     public virtual Topic? Topic { get; set; }
 }

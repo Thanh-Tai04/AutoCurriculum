@@ -19,7 +19,7 @@ public partial class Topic
 
     public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
 
-    public virtual User? CreatedByNavigation { get; set; }
+    // public virtual User? CreatedByNavigation { get; set; }
 
     public virtual ICollection<CurriculumHistory> CurriculumHistories { get; set; } = new List<CurriculumHistory>();
 

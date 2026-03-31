@@ -1,5 +1,5 @@
 @* Lưu ý: Thay đổi AutoCurriculum.Models.User thành Model tài khoản thực tế của bạn *@
-@model IEnumerable<dynamic> 
+@model IEnumerable<AutoCurriculum.Models.ApplicationUser>
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Người dùng";
@@ -111,7 +111,12 @@
                             <td class="@(isLocked ? "status-locked" : "status-active")">
                                 @(isLocked ? "⛔ Đã bị khóa" : "● Đang hoạt động")
                             </td>
-                            <td><span class="text-muted">Không xác định</span></td>
+                            <td>
+                                <span class="text-muted">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    @user.CreatedAt.ToString("dd/MM/yyyy")
+                                </span>
+                            </td>
                             <td class="text-center">
                                 <form action="/Admin/User/ToggleLock" method="post" class="d-inline form-lock">
                                     <input type="hidden" name="userId" value="@user.Id" />
