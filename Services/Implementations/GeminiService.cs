@@ -6,22 +6,21 @@ using System.Text;
 using System.Diagnostics; 
 using AutoCurriculum.Models;
 using System.Security.Claims; 
-using Microsoft.EntityFrameworkCore; // Thêm thư viện này để dùng FirstOrDefaultAsync
+using Microsoft.EntityFrameworkCore; 
 
 namespace AutoCurriculum.Services.Implementations
 {
     public class GeminiService : IGeminiService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
         private readonly AutoCurriculumDbContext _context; 
         private const string GeminiModel = "gemini-2.5-flash";
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public GeminiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, AutoCurriculumDbContext context, IHttpContextAccessor httpContextAccessor)
+        // Đã xóa IConfiguration cho code sạch sẽ
+        public GeminiService(IHttpClientFactory httpClientFactory, AutoCurriculumDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
             _context = context; 
             _httpContextAccessor = httpContextAccessor;
         }
@@ -32,7 +31,8 @@ namespace AutoCurriculum.Services.Implementations
                 ? string.Join("\n- ", wikiSections) 
                 : "Không có mục lục tham khảo, hãy tự suy luận cấu trúc phù hợp.";
 
-            var promptConfig = _context.PromptConfigs.FirstOrDefault(p => p.PromptCode == "Generate_Curriculum");
+            // FIX: Dùng await và FirstOrDefaultAsync để tối ưu hiệu suất
+            var promptConfig = await _context.PromptConfigs.FirstOrDefaultAsync(p => p.PromptCode == "Generate_Curriculum");
             if (promptConfig == null || string.IsNullOrWhiteSpace(promptConfig.PromptText)) 
             {
                 throw new Exception("Hệ thống AI đang tạm bảo trì do thiếu cấu hình câu lệnh. Quản trị viên vui lòng kiểm tra lại bảng Prompt!");
@@ -55,7 +55,8 @@ namespace AutoCurriculum.Services.Implementations
         {
             string lessonNumber = $"{chapterOrder}.{lessonOrder}";
 
-            var promptConfig = _context.PromptConfigs.FirstOrDefault(p => p.PromptCode == "Generate_Lesson");
+            // FIX: Dùng await và FirstOrDefaultAsync để tối ưu hiệu suất
+            var promptConfig = await _context.PromptConfigs.FirstOrDefaultAsync(p => p.PromptCode == "Generate_Lesson");
             if (promptConfig == null || string.IsNullOrWhiteSpace(promptConfig.PromptText)) 
             {
                 throw new Exception("Không thể tạo nội dung bài học do thiếu cấu hình Prompt.");

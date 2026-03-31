@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Threading.Tasks;
 
 namespace AutoCurriculum.Controllers
 {
-    [AllowAnonymous] // ← Mở mặc định, từng action cần bảo vệ thì thêm [Authorize]
+    [AllowAnonymous] 
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -42,7 +44,6 @@ namespace AutoCurriculum.Controllers
             if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Home");
 
-            // Hiển thị thông báo nếu bị redirect do session/lock
             if (reason == "expired")
                 TempData["ErrorMessage"] = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
             else if (reason == "locked")
@@ -63,30 +64,26 @@ namespace AutoCurriculum.Controllers
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                // Kiểm tra tài khoản bị khóa
                 if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
                 {
                     ModelState.AddModelError("", "Tài khoản đã bị khóa. Vui lòng liên hệ Admin.");
                     return View(model);
                 }
 
-                // 🌟 ĐẶC QUYỀN ADMIN: Bỏ qua OTP, đăng nhập thẳng!
                 var isRoleAdmin = await _userManager.IsInRoleAsync(user, "Admin");
                 if (isRoleAdmin || user.Email == "tainguyen280404@gmail.com")
                 {
                     await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
                     
-                    // Ghi log Admin đăng nhập
-                    await WriteLog(user.Email, "LOGIN_SUCCESS", user.Email, "SUCCESS", "Admin đăng nhập thành công (Bypass OTP)");
+                    // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
+                    await WriteLog(user.Email, "Đăng nhập", user.Email, "Success", "Admin đăng nhập thành công (Bypass OTP)");
                     
                     var roles = await _userManager.GetRolesAsync(user);
                     return Redirect(PostLoginRedirect.GetUrl(roles, returnUrl));
                 }
 
-                // 📩 LUỒNG BÌNH THƯỜNG: Dành cho User (Học viên)
                 try 
                 {
-                    // Tạo và gửi OTP
                     var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
                     await _emailService.SendEmailAsync(user.Email!,
                         "🔐 Mã xác nhận Đăng nhập - AutoCurriculum",
@@ -94,9 +91,8 @@ namespace AutoCurriculum.Controllers
                         $"<p>Mã OTP: <b style='font-size:24px;color:red'>{otp}</b></p>" +
                         $"<p>Mã có hiệu lực 3 phút. Không chia sẻ cho ai!</p>");
                 } 
-                catch (Exception ex) 
+                catch (Exception) 
                 {
-                    // Bắt lỗi nếu dịch vụ Mail cấu hình sai hoặc rớt mạng
                     ModelState.AddModelError("", "Lỗi hệ thống gửi Mail OTP. Vui lòng thử lại sau.");
                     return View(model);
                 }
@@ -107,9 +103,8 @@ namespace AutoCurriculum.Controllers
                 return RedirectToAction("VerifyOtp");
             }
 
-            // Ghi log sai mật khẩu
-            await WriteLog(user?.Email ?? model.UsernameOrEmail, "LOGIN_FAILED",
-                model.UsernameOrEmail, "FAILED", "Sai tài khoản hoặc mật khẩu");
+            // SỬA Ở ĐÂY: Dùng đúng chữ "Error"
+            await WriteLog(user?.Email ?? model.UsernameOrEmail, "Đăng nhập", model.UsernameOrEmail, "Error", "Sai tài khoản hoặc mật khẩu");
 
             ModelState.AddModelError("", "Tài khoản hoặc mật khẩu không chính xác.");
             return View(model);
@@ -144,15 +139,15 @@ namespace AutoCurriculum.Controllers
             {
                 await _signInManager.SignInAsync(user, isPersistent: rememberMe);
 
-                // ✅ Ghi log đăng nhập thành công
-                await WriteLog(user.Email, "LOGIN_SUCCESS", user.Email, "SUCCESS", "Đăng nhập thành công");
+                // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
+                await WriteLog(user.Email, "Xác thực OTP", user.Email, "Success", "Đăng nhập thành công");
 
-                // ✅ Redirect đúng theo role
                 var roles = await _userManager.GetRolesAsync(user);
                 return Redirect(PostLoginRedirect.GetUrl(roles, returnUrl));
             }
 
-            await WriteLog(user.Email, "OTP_FAILED", user.Email, "FAILED", "Nhập OTP sai");
+            // SỬA Ở ĐÂY: Dùng đúng chữ "Error"
+            await WriteLog(user.Email, "Xác thực OTP", user.Email, "Error", "Nhập OTP sai");
 
             ModelState.AddModelError("", "Mã OTP không hợp lệ hoặc đã hết hạn.");
             TempData.Keep("UserId");
@@ -232,15 +227,12 @@ namespace AutoCurriculum.Controllers
                     var result = await _userManager.CreateAsync(user, cachedData.Item1.Password);
                     if (result.Succeeded)
                     {
-                        // ✅ Gán role User mặc định
                         await _userManager.AddToRoleAsync(user, "User");
-
                         _cache.Remove("Reg_" + email);
                         await _signInManager.SignInAsync(user, isPersistent: false);
 
-                        // ✅ Ghi log đăng ký
-                        await WriteLog(user.Email, "REGISTER_SUCCESS", user.Email,
-                            "SUCCESS", "Đăng ký tài khoản mới thành công");
+                        // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
+                        await WriteLog(user.Email, "Đăng ký", user.Email, "Success", "Đăng ký tài khoản mới thành công");
 
                         return RedirectToAction("Index", "Home");
                     }
@@ -267,14 +259,17 @@ namespace AutoCurriculum.Controllers
         // ══════════════════════════════════════════════════════
 
         [HttpPost]
-        [Authorize] // ← Chỉ user đã đăng nhập mới được logout
+        [Authorize] 
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             var email = User.Identity?.Name;
-            await WriteLog(email, "LOGOUT", email, "SUCCESS", "Đăng xuất thành công");
+            
+            // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
+            await WriteLog(email, "Đăng xuất", email, "Success", "Đăng xuất thành công");
+            
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Login"); // ← Về Login thay vì Curriculum
+            return RedirectToAction("Login"); 
         }
 
         // ══════════════════════════════════════════════════════
@@ -335,8 +330,9 @@ namespace AutoCurriculum.Controllers
 
                 if (result.Succeeded)
                 {
-                    await WriteLog(user.Email, "RESET_PASSWORD", user.Email,
-                        "SUCCESS", "Đặt lại mật khẩu thành công");
+                    // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
+                    await WriteLog(user.Email, "Đổi mật khẩu", user.Email, "Success", "Đặt lại mật khẩu thành công");
+                    
                     await _signInManager.SignInAsync(user, isPersistent: false);
 
                     var roles = await _userManager.GetRolesAsync(user);
@@ -377,6 +373,7 @@ namespace AutoCurriculum.Controllers
                     Keyword   = keyword ?? "",
                     Status    = status,
                     Message   = message,
+                    ExecutionTimeMs = 0, 
                     CreatedAt = DateTime.Now
                 });
                 await _db.SaveChangesAsync();
