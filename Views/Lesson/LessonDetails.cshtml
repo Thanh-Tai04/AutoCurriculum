@@ -4,6 +4,48 @@
     ViewData["Title"] = "Học bài: " + Model.LessonTitle;
 }
 
+<style>
+    /* Ép khung code nhỏ lại và thêm thanh cuộn ngang */
+    .lesson-content pre {
+        background-color: #f4f6f8;
+        border: 1px solid #e1e4e8;
+        border-radius: 6px;
+        padding: 15px;
+        overflow-x: auto; /* Tạo thanh cuộn khi code quá dài */
+    }
+
+    .lesson-content pre code {
+        font-family: Consolas, Monaco, 'Courier New', monospace;
+        font-size: 14px; /* Thu nhỏ cỡ chữ code để dễ nhìn */
+        color: #24292e;
+        white-space: pre;
+    }
+
+    /* Giao diện nút mũi tên lên đầu trang */
+    #backToTopBtn {
+        display: none; /* Mặc định ẩn */
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 99;
+        font-size: 24px;
+        border: none;
+        outline: none;
+        background-color: #0d6efd;
+        color: white;
+        cursor: pointer;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: background-color 0.3s;
+    }
+
+    #backToTopBtn:hover {
+        background-color: #0b5ed7;
+    }
+</style>
+
 <div class="container mt-4 mb-5" style="max-width: 900px;">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb bg-light p-3 rounded shadow-sm">
@@ -19,9 +61,13 @@
         </ol>
     </nav>
 
+    <button onclick="history.back()" class="btn btn-outline-secondary btn-sm mb-3 shadow-sm">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </button>
+
     <h1 class="mb-4 text-dark border-bottom pb-3">@Model.ChapterOrder.@Model.LessonOrder @Model.LessonTitle</h1>
 
-    <div id="lessonContentArea" class="content-wrapper" style="font-size: 1.1rem; line-height: 1.8;">
+    <div id="lessonContentArea" class="content-wrapper lesson-content" style="font-size: 1.1rem; line-height: 1.8;">
         
         @if (Model.HtmlContents != null && Model.HtmlContents.Any())
         {
@@ -48,17 +94,44 @@
     </div>
 </div>
 
+<button onclick="scrollToTop()" id="backToTopBtn" title="Lên đầu trang">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
 @section Scripts {
     <script>
+        // --- ĐOẠN JS XỬ LÝ NÚT LÊN ĐẦU TRANG ---
+        let mybutton = document.getElementById("backToTopBtn");
+
+        window.onscroll = function () { scrollFunction() };
+
+        function scrollFunction() {
+            // Cuộn xuống 150px thì hiện nút
+            if (document.body.scrollTop > 150 || document.documentElement.scrollTop > 150) {
+                mybutton.style.display = "block";
+            } else {
+                mybutton.style.display = "none";
+            }
+        }
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth' // Cuộn mượt mà
+            });
+        }
+
+        // --- ĐOẠN JS CŨ CỦA BẠN ĐỂ GỌI AI ---
         $(document).ready(function () {
             $("#btnGenerateContent").click(function () {
                 var btn = $(this);
                 btn.prop("disabled", true);
                 btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Giáo sư AI đang viết bài...');
+                
                 $("#loadingStatus").text("Quá trình này có thể mất từ 10 - 20 giây. Vui lòng không làm mới trang...").fadeIn();
                 
                 $.ajax({
-                    url: '/Lesson/GenerateLessonContent', // Gọi đến Lesson Controller
+                    url: '/Lesson/GenerateLessonContent', 
                     type: 'POST',
                     data: { lessonId: @Model.LessonId }, 
                     success: function (response) {

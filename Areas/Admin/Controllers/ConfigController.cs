@@ -28,15 +28,51 @@ namespace AutoCurriculum.Areas.Admin.Controllers
                         PromptCode = "Generate_Curriculum", 
                         Name = "1. Lệnh tạo Cấu trúc Giáo trình", 
                         Description = "Các biến bắt buộc phải giữ nguyên trong bài: {topicName}, {sourceUrl}, {wikiDescription}, {sectionsText}", 
-                        PromptText = "Bạn là một Giáo sư Đại học đa ngành. Dựa vào nội dung nền tảng và CẤU TRÚC MỤC LỤC từ Wikipedia sau:\n[CHỦ ĐỀ]: {topicName}\n[TÓM TẮT NỘI DUNG NỀN TẢNG]: {wikiDescription}\n[DANH SÁCH MỤC LỤC THAM KHẢO]: \n- {sectionsText}\n\nYÊU CẦU CHI TIẾT:\n1. Dựa vào mục lục tham khảo, hãy phân chia thành các Chương (Chapters) logic.\n2. TRONG MỖI CHƯƠNG, bạn phải tự suy luận và chia nhỏ thành ít nhất 3-5 Bài học (Lessons) cụ thể để đảm bảo truyền tải hết kiến thức.\n3. Tên bài học phải mang tính chuyên môn cao, không được đặt tên chung chung.\n4. CHỈ TRẢ VỀ ĐỊNH DẠNG JSON THUẦN TÚY theo đúng cấu trúc hệ thống yêu cầu. Tuyệt đối không trả về Markdown (```json), không có lời dẫn. Chỉ JSON." 
-                    },
+                        PromptText = "Bạn là một Giáo sư Đại học đa ngành. Dựa vào nội dung nền tảng và CẤU TRÚC MỤC LỤC từ Wikipedia sau:\n\n[CHỦ ĐỀ]: {topicName}\n[SOURCE URL]: {sourceUrl}\n[TÓM TẮT NỘI DUNG]:\n{wikiDescription}\n\n[MỤC LỤC GỐC TỪ WIKIPEDIA]:\n- {sectionsText}\n\nYÊU CẦU BẮT BUỘC:\n1. ĐÓNG VAI CHUYÊN GIA: Tự động phân tích xem chủ đề trên thuộc lĩnh vực nào (Kinh tế, CNTT, Y học, Lịch sử...).\n2. NÂNG CẤP HỌC THUẬT: Biến nội dung này thành một GIÁO TRÌNH BÀI BẢN. Sử dụng [MỤC LỤC GỐC TỪ WIKIPEDIA] làm khung sườn chính để chia Chương (Chapter) và Mục con (Section). Tự bổ sung kiến thức chuyên sâu đặc thù của ngành đó.\n3. CẤU TRÚC: Thiết kế TỐI ĐA 5 chương. Mỗi chương bao gồm các Mục con (Section). Mỗi Mục con chứa 2-4 bài học (Lesson) đi từ cơ bản đến nâng cao.\n4. QUY TẮC ĐẶT TÊN (RẤT QUAN TRỌNG): TUYỆT ĐỐI KHÔNG thêm các tiền tố như 'Chương 1:', 'Bài 1:', 'Phần 1.1:', '1.', 'a.' vào đầu tên của ChapterTitle, SectionTitle hay Lessons. Chỉ sinh ra phần nội dung tiêu đề thuần túy.\n5. ĐẦU RA: CHỈ trả về MỘT OBJECT JSON DUY NHẤT, KHÔNG dùng thẻ markdown ```json, không giải thích thêm. BẮT BUỘC phải theo đúng cấu trúc dưới đây:\n{{\n    \"\"TopicName\"\": \"\"{topicName}\"\",\n    \"\"Description\"\": \"\"Tóm tắt mục tiêu của giáo trình này (khoảng 2-3 câu).\"\",\n    \"\"SourceName\"\": \"\"{topicName}\"\",\n    \"\"SourceUrl\"\": \"\"{sourceUrl}\"\",\n    \"\"Chapters\"\": [\n    {{\n        \"\"ChapterTitle\"\": \"\"Tổng quan và Lịch sử phát triển\"\",\n        \"\"Sections\"\": [\n        {{\n            \"\"SectionTitle\"\": \"\"Khái niệm cốt lõi\"\",\n            \"\"Lessons\"\": [\"\"Định nghĩa cơ bản\"\", \"\"Ứng dụng và tầm quan trọng\"\"]\n        }}\n        ]\n    }}\n    ]\n}}"                    },
                     new PromptConfig 
                     { 
                         PromptCode = "Generate_Lesson", 
                         Name = "2. Lệnh tạo Nội dung Bài học", 
                         Description = "Các biến bắt buộc phải giữ nguyên trong bài: {topicName}, {chapterOrder}, {chapterTitle}, {lessonNumber}, {lessonTitle}", 
-                        PromptText = "Bạn là một Giảng viên Đại học biên soạn tài liệu giáo trình. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:\n- Nằm trong môn học/chủ đề: {topicName}\n- Thuộc Chương {chapterOrder}: {chapterTitle}\n- Tên bài học hiện tại: Bài {lessonNumber} - {lessonTitle}\n\nYÊU CẦU BẮT BUỘC:\n1. TRÌNH BÀY MỤC LỤC CHUẨN: Sử dụng mã số bài học ({lessonNumber}) làm gốc để đánh số phân cấp cho các nội dung bên trong.\n- Các mục chính (dùng thẻ <h3>) BẮT BUỘC đánh số: {lessonNumber}.1, {lessonNumber}.2...\n- Các tiểu mục con (dùng thẻ <h4>) BẮT BUỘC đánh số: {lessonNumber}.1.1, {lessonNumber}.1.2...\n2. NỘI DUNG: Viết một bài giảng sâu sắc, dễ hiểu, văn phong học thuật.\n3. THỰC TẾ: Bắt buộc có ví dụ minh họa thực tế. Nếu là CNTT, bắt buộc có đoạn code mẫu.\n4. ĐỊNH DẠNG: Trình bày bằng HTML cơ bản (dùng thẻ <h3>, <h4>, <p>, <ul>, <li>, <strong>, <code>). KHÔNG dùng markdown.\n5. KHÔNG trả về JSON. Chỉ trả về trực tiếp đoạn mã HTML nội dung bài học.\n6. TUYỆT ĐỐI KHÔNG CHÀO HỎI.\n7. VÀO THẲNG VẤN ĐỀ: Đoạn HTML trả về BẮT BUỘC phải bắt đầu ngay lập tức bằng thẻ <h3>." 
-                    }
+                        PromptText = "Bạn là một Giảng viên Đại học biên soạn tài liệu giáo trình. Hãy biên soạn nội dung giảng dạy CHI TIẾT cho bài học sau:\n" +
+                                        "\n- Nằm trong môn học/chủ đề: {topicName}" +
+                                        "\n- Thuộc Chương {chapterOrder}: {chapterTitle}" +
+                                        "\n- Tên bài học hiện tại: Bài {lessonNumber} - {lessonTitle}\n" +
+
+                                        "\nYÊU CẦU BẮT BUỘC:" +
+                                        "\n1. TRÌNH BÀY MỤC LỤC CHUẨN:" +
+                                        "\n- Sử dụng mã số bài học ({lessonNumber}) làm gốc để đánh số." +
+                                        "\n- Các mục chính dùng thẻ <h3>: {lessonNumber}.1, {lessonNumber}.2, ..." +
+                                        "\n- Các tiểu mục dùng thẻ <h4>: {lessonNumber}.1.1, {lessonNumber}.1.2, ..." +
+
+                                        "\n2. NỘI DUNG:" +
+                                        "\n- Viết bài giảng có chiều sâu, dễ hiểu, văn phong học thuật." +
+                                        "\n- Giải thích rõ khái niệm, nguyên lý, và cách áp dụng." +
+
+                                        "\n3. THỰC TẾ:" +
+                                        "\n- BẮT BUỘC có ví dụ minh họa thực tế." +
+                                        "\n- Nếu chủ đề thuộc CNTT: PHẢI có ít nhất 1 đoạn code mẫu đặt trong thẻ <code>." +
+
+                                        "\n4. ĐỊNH DẠNG HTML:" +
+                                        "\n- Chỉ sử dụng các thẻ: <h3>, <h4>, <p>, <ul>, <li>, <strong>, <code>." +
+                                        "\n- KHÔNG sử dụng Markdown." +
+                                        "\n- Không dùng thẻ ngoài danh sách." +
+
+                                        "\n5. ĐẦU RA:" +
+                                        "\n- KHÔNG trả về JSON." +
+                                        "\n- Chỉ trả về DUY NHẤT đoạn HTML." +
+
+                                        "\n6. TUYỆT ĐỐI KHÔNG CHÀO HỎI:" +
+                                        "\n- Không được dùng các câu như: 'Chào...', 'Hôm nay...', 'Chúng ta sẽ...'" +
+
+                                        "\n7. BẮT BUỘC BẮT ĐẦU ĐÚNG:" +
+                                        "\n- Dòng đầu tiên PHẢI là thẻ <h3> của mục {lessonNumber}.1." +
+                                        "\n- KHÔNG có bất kỳ nội dung nào trước thẻ <h3> này." +
+
+                                        "\n8. RÀNG BUỘC QUAN TRỌNG:" +
+                                        "\n- Không giải thích thêm ngoài HTML." +
+                                        "\n- Không thêm tiêu đề ngoài hệ thống đánh số." +
+                                        "\n- Đảm bảo thứ tự logic từ cơ bản đến nâng cao."                    }
                 );
                 _context.SaveChanges();
             }
