@@ -1,0 +1,168 @@
+@model IEnumerable<AutoCurriculum.Models.ApiKey>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Cấu hình Gemini API";
+
+    // 1. Lọc ra Key Gemini đang hoạt động
+    var activeKey = Model?.FirstOrDefault(k => k.IsActive && k.Provider == "Gemini AI");
+    
+    // 2. Lọc danh sách chỉ hiển thị lịch sử của Gemini AI
+    var geminiKeys = Model?.Where(k => k.Provider == "Gemini AI").OrderByDescending(k => k.CreatedAt).ToList() ?? new List<AutoCurriculum.Models.ApiKey>();
+}
+
+<style>
+    .table-container { background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow-x: auto; max-height: calc(100vh - 350px); }
+    .table td, .table th { vertical-align: middle; white-space: nowrap; padding: 14px 20px; }
+    .table thead th { position: sticky; top: 0; z-index: 10; background-color: #f8f9fa; border-bottom: 2px solid #e9ecef; text-transform: uppercase; font-size: 0.85rem; color: #6c757d; }
+    .status-active { color: #198754; font-weight: bold; }
+    .status-inactive { color: #6c757d; font-weight: bold; }
+    .key-masked { font-family: monospace; background: #f1f3f5; padding: 4px 8px; border-radius: 4px; letter-spacing: 1px;}
+    .active-key-card { border-left: 5px solid #0d6efd; background-color: #f8fbff; }
+</style>
+
+<div class="h-100 d-flex flex-column" style="overflow: hidden;">
+    
+    <div class="page-header d-flex justify-content-between align-items-end mb-4 flex-shrink-0">
+        <div>
+            <h2 class="fw-bold mb-1">🤖 Cấu hình Gemini AI</h2>
+            <p class="text-muted mb-0">Quản lý khóa kết nối API của Google Gemini</p>
+        </div>
+        
+        <form action="/Admin/ApiKey/Create" method="post" class="d-flex shadow-sm bg-white p-2 rounded-3 border align-items-center">
+            <input type="hidden" name="provider" value="Gemini AI" />
+            <span class="badge bg-primary fs-6 me-2 px-3 py-2">Gemini AI</span>
+            
+            <input type="text" name="keyValue" class="form-control border-0 bg-light me-2" style="width: 300px;" placeholder="Nhập mã API Key mới vào đây..." required>
+            <button type="submit" class="btn btn-primary fw-bold"><i class="bi bi-plus-lg"></i> Thêm Key Mới</button>
+        </form>
+    </div>
+
+    @* --- HIỂN THỊ TRẠNG THÁI KEY HIỆN TẠI --- *@
+    <div class="card shadow-sm border-0 mb-4 active-key-card flex-shrink-0">
+        <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+                <h6 class="text-primary fw-bold mb-1"><i class="bi bi-key-fill me-1"></i> KHÓA API ĐANG HOẠT ĐỘNG</h6>
+                @if (activeKey != null)
+                {
+                    string maskedActive = activeKey.KeyValue.Length > 15 
+                        ? activeKey.KeyValue.Substring(0, 10) + "••••••••••••••••" + activeKey.KeyValue.Substring(activeKey.KeyValue.Length - 4) 
+                        : "••••••••••••";
+                    <span class="fs-5 font-monospace text-dark">@maskedActive</span>
+                }
+                else
+                {
+                    <span class="fs-5 text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Hệ thống đang thiếu khóa API. Cần cập nhật ngay!</span>
+                }
+            </div>
+            @if (activeKey != null)
+            {
+                <div class="text-end">
+                    <span class="badge bg-success mb-1">Đang kết nối</span>
+                    <div class="text-muted small">Cập nhật: @activeKey.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* --- PHẦN HIỂN THỊ THÔNG BÁO BOOTSTRAP --- *@
+    <div class="flex-shrink-0">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 border-start border-success border-4 mb-3" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 border-start border-danger border-4 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Lỗi:</strong> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+
+    <div class="table-container flex-grow-1">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Mã API Key (Lịch sử)</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày thêm</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (geminiKeys.Any())
+                {
+                    foreach (var key in geminiKeys)
+                    {
+                        string maskedKey = key.KeyValue.Length > 15 
+                            ? key.KeyValue.Substring(0, 8) + "••••••••••••" + key.KeyValue.Substring(key.KeyValue.Length - 4) 
+                            : "••••••••••••";
+
+                        <tr class="@(key.IsActive ? "table-primary bg-opacity-10" : "")">
+                            <td><span class="key-masked">@maskedKey</span></td>
+                            <td class="@(key.IsActive ? "status-active" : "status-inactive")">
+                                <i class="bi @(key.IsActive ? "bi-check-circle-fill" : "bi-pause-circle-fill")"></i> 
+                                @(key.IsActive ? "Đang sử dụng" : "Tạm ngưng")
+                            </td>
+                            <td>@key.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center">
+                                <form action="/Admin/ApiKey/ToggleStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@key.Id" />
+                                    <button type="submit" class="btn btn-sm @(key.IsActive ? "btn-outline-secondary" : "btn-outline-success")" title="@(key.IsActive ? "Tạm ngưng" : "Kích hoạt")">
+                                        <i class="bi @(key.IsActive ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                    </button>
+                                </form>
+
+                                <form action="/Admin/ApiKey/Delete" method="post" class="d-inline form-delete">
+                                    <input type="hidden" name="id" value="@key.Id" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete" @(key.IsActive ? "disabled" : "") title="Xóa">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="4" class="text-center py-5 text-muted">Chưa có mã Gemini API Key nào trong lịch sử.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 4000);
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const form = this.closest('.form-delete');
+                Swal.fire({
+                    title: 'Xóa vĩnh viễn Key này?',
+                    text: "Bạn không thể hoàn tác sau khi xóa!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Có, xóa!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

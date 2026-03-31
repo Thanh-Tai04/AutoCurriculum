@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-using AutoCurriculum.Models; // Đảm bảo gọi đúng Namespace chứa ApplicationUser của bạn
+using AutoCurriculum.Models; 
+using Microsoft.EntityFrameworkCore; 
 
 namespace AutoCurriculum.Data
 {
@@ -9,7 +10,7 @@ namespace AutoCurriculum.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
+            
             // 1. TẠO ROLE "Admin" VÀ "User" (Nếu chưa có trong DB)
             string[] roleNames = { "Admin", "User" };
             foreach (var roleName in roleNames)
@@ -23,30 +24,28 @@ namespace AutoCurriculum.Data
 
             // 2. TẠO TÀI KHOẢN ADMIN MẶC ĐỊNH
             string adminEmail = "tainguyen280404@gmail.com"; 
-            string adminPassword = "Admin@"; // Mật khẩu phải có chữ hoa, thường, số và ký tự đặc biệt
+            string adminPassword = "Admin@"; 
 
-            // Kiểm tra xem email này đã tồn tại trong DB chưa
             var _user = await userManager.FindByEmailAsync(adminEmail);
-
             if (_user == null)
             {
-                // Nếu chưa có, tiến hành tạo mới
                 var createPowerUser = new ApplicationUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    FullName = "Quản Trị Viên Tối Cao", // Cột FullName từ Model của bạn
+                    FullName = "Quản Trị Viên Tối Cao", 
                     EmailConfirmed = true
                 };
 
                 var createPowerUserResult = await userManager.CreateAsync(createPowerUser, adminPassword);
 
-                // Nếu tạo thành công thì gán quyền "Admin"
                 if (createPowerUserResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(createPowerUser, "Admin");
                 }
             }
+            
+            // ĐÃ XÓA PHẦN TỰ ĐỘNG THÊM API KEY Ở ĐÂY
         }
     }
 }
