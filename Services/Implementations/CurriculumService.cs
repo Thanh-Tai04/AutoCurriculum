@@ -3,7 +3,7 @@ using AutoCurriculum.ViewModels;
 using AutoCurriculum.Repositories.Interfaces;
 using AutoCurriculum.Services.Interfaces;
 using AutoCurriculum.DTOs;
-using Newtonsoft.Json.Linq; // Thêm thư viện này để xử lý JSON gọn gàng hơn
+using Newtonsoft.Json.Linq; 
 
 namespace AutoCurriculum.Services.Implementations
 {
@@ -11,7 +11,7 @@ namespace AutoCurriculum.Services.Implementations
     {
         private readonly ITopicRepository _topicRepo;
         private readonly IChapterRepository _chapterRepo;
-        private readonly ISectionRepository _sectionRepo; // BỔ SUNG REPOSITORY CHO SECTION
+        private readonly ISectionRepository _sectionRepo; 
         private readonly ILessonRepository _lessonRepo;
         private readonly IContentRepository _contentRepo;
         private readonly IWikipediaService _wikiService;
@@ -20,7 +20,7 @@ namespace AutoCurriculum.Services.Implementations
         public CurriculumService(
             ITopicRepository topicRepo,
             IChapterRepository chapterRepo,
-            ISectionRepository sectionRepo, // BỔ SUNG VÀO CONSTRUCTOR
+            ISectionRepository sectionRepo, 
             ILessonRepository lessonRepo,
             IContentRepository contentRepo,
             IWikipediaService wikiService,
@@ -72,8 +72,8 @@ namespace AutoCurriculum.Services.Implementations
             var newTopic = new Topic
             {
                 TopicName = aiData.TopicName ?? exactTitle,
-                Description = summary, // Chỉ lưu summary để DB gọn gàng hơn
-                Source = newSource,    // GẮN NGUỒN VÀO ĐÂY: Entity Framework sẽ tự động lưu Source trước để lấy ID
+                Description = summary, 
+                Source = newSource,    
                 CreatedAt = DateTime.Now,
                 Chapters = new List<Chapter>() 
             };
@@ -91,7 +91,7 @@ namespace AutoCurriculum.Services.Implementations
                 };
 
                 int sectionOrder = 1;
-                int lessonOrder = 1; // Giữ thứ tự Lesson tăng dần xuyên suốt trong 1 Chapter
+                int lessonOrder = 1; 
 
                 foreach (var secDto in chapDto.Sections)
                 {
@@ -108,7 +108,7 @@ namespace AutoCurriculum.Services.Implementations
                         {
                             LessonTitle = lessonTitle,
                             LessonOrder = lessonOrder++,
-                            Chapter = newChapter // Map thẳng vào Chapter giống như logic trước đây của bạn
+                            Chapter = newChapter 
                         });
                     }
 
@@ -119,8 +119,7 @@ namespace AutoCurriculum.Services.Implementations
             }
 
             // Bước 5: LƯU TẤT CẢ VÀO DATABASE TRONG 1 LẦN DUY NHẤT
-            // Phép màu của Entity Framework: Nó sẽ tự động INSERT bảng Source -> lấy SourceId gắn cho Topic 
-            // -> INSERT Topic -> lấy TopicId gắn cho Chapter... và cứ thế đến Lesson.
+            
             _topicRepo.Add(newTopic);
             await _topicRepo.SaveAsync();
 
@@ -133,7 +132,7 @@ namespace AutoCurriculum.Services.Implementations
             if (topic != null)
             {
                 _topicRepo.Delete(topic);
-                _topicRepo.Save(); // EF Core sẽ tự động xóa các Chapter, Lesson con nếu bạn cấu hình Cascade Delete
+                _topicRepo.Save(); 
             }
         }
         
@@ -188,13 +187,11 @@ namespace AutoCurriculum.Services.Implementations
             var lesson = _lessonRepo.GetByIdWithContext(lessonId)
                         ?? throw new Exception("Không tìm thấy bài học!");
 
-            // Ép buộc kiểm tra tính toàn vẹn dữ liệu
             if (lesson.Chapter == null || lesson.Chapter.Topic == null)
             {
                 throw new Exception("Dữ liệu bài học bị lỗi: Không tìm thấy Chương hoặc Chủ đề liên quan. Hãy kiểm tra lại hàm GetByIdWithContext đã có .Include() chưa.");
             }
 
-            // Lúc này đã chắc chắn Chapter và Topic không null
             string topicName = lesson.Chapter.Topic.TopicName;
             string chapterTitle = lesson.Chapter.ChapterTitle ?? "Không rõ";
             int chapterOrder = lesson.Chapter.ChapterOrder ?? 1;

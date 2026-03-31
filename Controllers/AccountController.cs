@@ -33,10 +33,7 @@ namespace AutoCurriculum.Controllers
             _cache = cache;
             _db = db;
         }
-
-        // ══════════════════════════════════════════════════════
         // 1. ĐĂNG NHẬP (Luồng OTP)
-        // ══════════════════════════════════════════════════════
 
         [HttpGet]
         public IActionResult Login(string? returnUrl = null, string? reason = null)
@@ -75,7 +72,6 @@ namespace AutoCurriculum.Controllers
                 {
                     await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
                     
-                    // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
                     await WriteLog(user.Email, "Đăng nhập", user.Email, "Success", "Admin đăng nhập thành công (Bypass OTP)");
                     
                     var roles = await _userManager.GetRolesAsync(user);
@@ -102,8 +98,6 @@ namespace AutoCurriculum.Controllers
                 TempData["ReturnUrl"]  = returnUrl;
                 return RedirectToAction("VerifyOtp");
             }
-
-            // SỬA Ở ĐÂY: Dùng đúng chữ "Error"
             await WriteLog(user?.Email ?? model.UsernameOrEmail, "Đăng nhập", model.UsernameOrEmail, "Error", "Sai tài khoản hoặc mật khẩu");
 
             ModelState.AddModelError("", "Tài khoản hoặc mật khẩu không chính xác.");
@@ -139,14 +133,12 @@ namespace AutoCurriculum.Controllers
             {
                 await _signInManager.SignInAsync(user, isPersistent: rememberMe);
 
-                // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
                 await WriteLog(user.Email, "Xác thực OTP", user.Email, "Success", "Đăng nhập thành công");
 
                 var roles = await _userManager.GetRolesAsync(user);
                 return Redirect(PostLoginRedirect.GetUrl(roles, returnUrl));
             }
 
-            // SỬA Ở ĐÂY: Dùng đúng chữ "Error"
             await WriteLog(user.Email, "Xác thực OTP", user.Email, "Error", "Nhập OTP sai");
 
             ModelState.AddModelError("", "Mã OTP không hợp lệ hoặc đã hết hạn.");
@@ -156,9 +148,7 @@ namespace AutoCurriculum.Controllers
             return View();
         }
 
-        // ══════════════════════════════════════════════════════
         // 2. ĐĂNG KÝ
-        // ══════════════════════════════════════════════════════
 
         [HttpGet]
         public IActionResult Register()
@@ -254,9 +244,7 @@ namespace AutoCurriculum.Controllers
             return View();
         }
 
-        // ══════════════════════════════════════════════════════
         // 3. ĐĂNG XUẤT
-        // ══════════════════════════════════════════════════════
 
         [HttpPost]
         [Authorize] 
@@ -265,16 +253,13 @@ namespace AutoCurriculum.Controllers
         {
             var email = User.Identity?.Name;
             
-            // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
             await WriteLog(email, "Đăng xuất", email, "Success", "Đăng xuất thành công");
             
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login"); 
         }
 
-        // ══════════════════════════════════════════════════════
         // 4. QUÊN MẬT KHẨU
-        // ══════════════════════════════════════════════════════
 
         [HttpGet]
         public IActionResult ForgotPassword() => View();
@@ -330,7 +315,6 @@ namespace AutoCurriculum.Controllers
 
                 if (result.Succeeded)
                 {
-                    // SỬA Ở ĐÂY: Dùng đúng chữ "Success"
                     await WriteLog(user.Email, "Đổi mật khẩu", user.Email, "Success", "Đặt lại mật khẩu thành công");
                     
                     await _signInManager.SignInAsync(user, isPersistent: false);
@@ -350,16 +334,12 @@ namespace AutoCurriculum.Controllers
             return View(model);
         }
 
-        // ══════════════════════════════════════════════════════
         // 5. ACCESS DENIED
-        // ══════════════════════════════════════════════════════
 
         [HttpGet]
         public IActionResult AccessDenied() => View();
 
-        // ══════════════════════════════════════════════════════
         // HELPER: Ghi SystemLog
-        // ══════════════════════════════════════════════════════
         private async Task WriteLog(
             string? email, string action,
             string? keyword, string status, string message)

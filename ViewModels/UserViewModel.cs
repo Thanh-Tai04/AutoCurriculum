@@ -9,7 +9,6 @@ namespace AutoCurriculum.Models
         public string Role { get; set; }
         public DateTimeOffset? LockoutEnd { get; set; }
         
-        // Kiểm tra trạng thái khóa
         public bool IsLocked => LockoutEnd != null && LockoutEnd > DateTimeOffset.UtcNow;
     }
 }

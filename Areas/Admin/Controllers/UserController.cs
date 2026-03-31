@@ -25,7 +25,6 @@ namespace AutoCurriculum.Areas.Admin.Controllers
         // 1. HIỂN THỊ DANH SÁCH NGƯỜI DÙNG
         public async Task<IActionResult> Index()
         {
-            // Lấy danh sách kèm theo các thông tin cần thiết
             var users = await _context.Users
                                 .OrderByDescending(u => u.Email) 
                                 .ToListAsync();
@@ -38,8 +37,7 @@ namespace AutoCurriculum.Areas.Admin.Controllers
         public async Task<IActionResult> ToggleLock(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            var currentUser = await _userManager.GetUserAsync(User); // Lấy Admin đang thao tác
-            
+            var currentUser = await _userManager.GetUserAsync(User); 
             if (user == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy người dùng này!";
@@ -74,8 +72,7 @@ namespace AutoCurriculum.Areas.Admin.Controllers
                 user.LockoutEnd = DateTimeOffset.MaxValue;
             }
             
-            await _userManager.UpdateAsync(user); // Dùng UserManager để update đồng bộ hơn Identity
-
+            await _userManager.UpdateAsync(user);
             string actionName = isLocked ? "mở khóa" : "khóa";
             TempData["Message"] = $"Đã {actionName} tài khoản {user.Email} thành công!";
             

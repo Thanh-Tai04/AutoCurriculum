@@ -6,7 +6,7 @@ namespace AutoCurriculum.Repositories.Implementations
 {
     public class SectionRepository : ISectionRepository
     {
-        private readonly AutoCurriculumDbContext _context; // Thay bằng DbContext của bạn
+        private readonly AutoCurriculumDbContext _context; 
 
         public SectionRepository(AutoCurriculumDbContext context)
         {

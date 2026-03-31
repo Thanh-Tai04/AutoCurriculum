@@ -5,8 +5,8 @@ namespace AutoCurriculum.DTOs
     {
         public string TopicName { get; set; }
         public string Description { get; set; }
-        public string SourceName { get; set; } // Hứng tên bài Wiki để làm nguồn
-        public string SourceUrl { get; set; }  // Hứng link Wiki
+        public string SourceName { get; set; } 
+        public string SourceUrl { get; set; }  
         
         public List<AiChapterDto> Chapters { get; set; } = new();
     }
@@ -24,7 +24,6 @@ namespace AutoCurriculum.DTOs
     {
         public string SectionTitle { get; set; }
         
-        // Hứng trực tiếp mảng chuỗi (tên bài học) từ JSON
         public List<string> Lessons { get; set; } = new();
     }
 }

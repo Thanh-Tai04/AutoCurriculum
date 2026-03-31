@@ -10,13 +10,13 @@ namespace AutoCurriculum.Models
 
         [Required(ErrorMessage = "Vui lòng nhập tên dịch vụ (Provider)")]
         [StringLength(100)]
-        public string Provider { get; set; } // Ví dụ: "Gemini AI", "Wikipedia"
+        public string Provider { get; set; } 
 
         [Required(ErrorMessage = "Vui lòng nhập mã API Key")]
-        public string KeyValue { get; set; } // Chuỗi khóa thực tế
+        public string KeyValue { get; set; } 
 
-        public bool IsActive { get; set; } = true; // Trạng thái Bật/Tắt
+        public bool IsActive { get; set; } = true; 
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now; // Ngày thêm khóa
+        public DateTime CreatedAt { get; set; } = DateTime.Now; 
     }
 }

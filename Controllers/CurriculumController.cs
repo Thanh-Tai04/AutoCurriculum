@@ -49,8 +49,6 @@ namespace AutoCurriculum.Controllers
             // Kiểm tra xem user hiện tại có phải là Admin không
             bool isAdmin = User.IsInRole("Admin");
 
-            // NẾU topic không tồn tại 
-            // HOẶC (người đang xem KHÔNG PHẢI tác giả VÀ cũng KHÔNG PHẢI Admin) -> Bị cấm (Forbid)
             if (topic == null || (topic.UserId != userId && !isAdmin)) 
             {
                 return Forbid(); 
@@ -96,7 +94,6 @@ namespace AutoCurriculum.Controllers
 
             try
             {
-                // ĐÃ THÊM "Wikipedia_Preview" VÀO ĐÂY
                 var (exactTitle, summary, _) = await _wikiService.GetTopicDataAsync(topicName, "Wikipedia_Preview");
                 return Json(new { success = true, exactTitle = exactTitle, summary = summary });
             }

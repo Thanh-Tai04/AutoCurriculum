@@ -31,7 +31,6 @@ namespace AutoCurriculum.Services.Implementations
                 ? string.Join("\n- ", wikiSections) 
                 : "Không có mục lục tham khảo, hãy tự suy luận cấu trúc phù hợp.";
 
-            // FIX: Dùng await và FirstOrDefaultAsync để tối ưu hiệu suất
             var promptConfig = await _context.PromptConfigs.FirstOrDefaultAsync(p => p.PromptCode == "Generate_Curriculum");
             if (promptConfig == null || string.IsNullOrWhiteSpace(promptConfig.PromptText)) 
             {
@@ -55,7 +54,6 @@ namespace AutoCurriculum.Services.Implementations
         {
             string lessonNumber = $"{chapterOrder}.{lessonOrder}";
 
-            // FIX: Dùng await và FirstOrDefaultAsync để tối ưu hiệu suất
             var promptConfig = await _context.PromptConfigs.FirstOrDefaultAsync(p => p.PromptCode == "Generate_Lesson");
             if (promptConfig == null || string.IsNullOrWhiteSpace(promptConfig.PromptText)) 
             {

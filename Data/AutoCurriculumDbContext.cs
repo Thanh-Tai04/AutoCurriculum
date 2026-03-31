@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // DÒNG NÀY ĐỂ KÍCH HOẠT IDENTITY
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; 
 using AutoCurriculum.Models;
 
 namespace AutoCurriculum.Models;
@@ -30,10 +30,6 @@ public partial class AutoCurriculumDbContext : IdentityDbContext<ApplicationUser
     public DbSet<ApiKey> ApiKeys { get; set; }
     
     
-    // ĐÃ XÓA: Bảng Users cũ. Từ nay Identity sẽ lo phần này.
-
-    // ĐÃ XÓA: Hàm OnConfiguring chứa chuỗi kết nối và sinh lỗi Warning
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 2. DÒNG PHÉP THUẬT: Bắt buộc phải có để đẻ ra các bảng AspNetUsers, AspNetRoles...
@@ -75,7 +71,6 @@ public partial class AutoCurriculumDbContext : IdentityDbContext<ApplicationUser
                 .HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(50);
 
-            // Đã xóa cấu hình khóa ngoại tới bảng Users cũ để tránh lỗi đụng độ
             entity.HasOne(d => d.Topic).WithMany(p => p.CurriculumHistories)
                 .HasForeignKey(d => d.TopicId)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -134,14 +129,12 @@ public partial class AutoCurriculumDbContext : IdentityDbContext<ApplicationUser
                 .HasColumnType("datetime");
             entity.Property(e => e.TopicName).HasMaxLength(255);
 
-            // Đã xóa cấu hình khóa ngoại tới bảng Users cũ để tránh lỗi đụng độ
             entity.HasOne(d => d.Source).WithMany(p => p.Topics)
                 .HasForeignKey(d => d.SourceId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Topics_Sources");
         });
 
-        // ĐÃ XÓA: modelBuilder.Entity<User>(...)
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -10,17 +10,16 @@ namespace AutoCurriculum.Models
 
         [Required]
         [MaxLength(50)]
-        public string PromptCode { get; set; } // Dùng để code C# gọi đúng (VD: "Generate_Curriculum")
-
+        public string PromptCode { get; set; }
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } // Tên hiển thị trên web (VD: "Câu lệnh tạo Cấu trúc Giáo trình")
+        public string Name { get; set; } 
 
-        public string Description { get; set; } // Ghi chú để nhớ các biến như {topicName}, {lessonTitle}...
+        public string Description { get; set; }
 
         [Required]
-        public string PromptText { get; set; } // Nội dung câu lệnh siêu dài của bạn sẽ nằm ở đây
+        public string PromptText { get; set; } 
 
-        public DateTime UpdatedAt { get; set; } = DateTime.Now; // Lưu thời gian chỉnh sửa cuối cùng
+        public DateTime UpdatedAt { get; set; } = DateTime.Now; 
     }
 }

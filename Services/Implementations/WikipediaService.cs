@@ -42,7 +42,7 @@ namespace AutoCurriculum.Services.Implementations
             }
 
             var log = new SystemLog { 
-                Action = actionName, // Gán actionName để phân biệt trên Dashboard
+                Action = actionName, 
                 Keyword = topicName, 
                 UserEmail = currentUserEmail, 
                 CreatedAt = DateTime.Now 

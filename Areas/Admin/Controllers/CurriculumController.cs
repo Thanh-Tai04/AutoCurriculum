@@ -30,7 +30,7 @@ namespace AutoCurriculum.Areas.Admin.Controllers
             return View(topics);
         }
 
-        // 2. XÓA GIÁO TRÌNH (DỌN RÁC)
+        // 2. XÓA GIÁO TRÌNH
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -62,7 +62,6 @@ namespace AutoCurriculum.Areas.Admin.Controllers
 
             if (topic == null) return NotFound();
 
-            // Lưu ý: Đảm bảo tên thư mục là "Curriculum" hay "Topic" tùy theo cấu trúc thực tế của bạn
             return PartialView("/Views/Export/ExportToPdf.cshtml", topic);
         }
     }

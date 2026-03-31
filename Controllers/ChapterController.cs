@@ -43,7 +43,6 @@ namespace AutoCurriculum.Controllers
             if (!string.IsNullOrEmpty(chapterTitle))
                 _curriculumService.CreateChapter(topicId, chapterTitle);
 
-            // Chú ý: Đã thêm chữ "Curriculum" để nó biết đường quay về file kia
             return RedirectToAction("Details", "Curriculum", new { id = topicId });
         }
 

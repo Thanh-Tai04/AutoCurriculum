@@ -37,8 +37,6 @@ namespace AutoCurriculum.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "Vui lòng nhập đầy đủ thông tin API Key!";
                 return RedirectToAction("Index");
             }
-
-            // --- TÍNH NĂNG MỚI: TỰ ĐỘNG TẠM NGƯNG CÁC KEY CŨ ---
             var existingActiveKeys = await _context.ApiKeys
                                             .Where(k => k.Provider == provider && k.IsActive)
                                             .ToListAsync();

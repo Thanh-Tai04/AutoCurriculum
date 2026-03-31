@@ -10,7 +10,6 @@ namespace AutoCurriculum.Helpers
             if (string.IsNullOrEmpty(input))
                 return string.Empty;
 
-            // Bỏ dấu tiếng Việt
             string normalized = input.Normalize(NormalizationForm.FormD);
             StringBuilder sb = new StringBuilder();
 
@@ -24,10 +23,8 @@ namespace AutoCurriculum.Helpers
 
             string result = sb.ToString().Normalize(NormalizationForm.FormC);
 
-            // Thay khoảng trắng bằng _
             result = Regex.Replace(result, @"\s+", "_");
 
-            // Xóa ký tự đặc biệt
             result = Regex.Replace(result, @"[^a-zA-Z0-9_]", "");
 
             return result;

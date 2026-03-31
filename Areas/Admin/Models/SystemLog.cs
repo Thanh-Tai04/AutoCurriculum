@@ -7,7 +7,7 @@ namespace AutoCurriculum.Models
     {
         [Key]
         public int Id { get; set; }
-        public string? UserEmail { get; set; } // Lưu email người dùng thực hiện
+        public string? UserEmail { get; set; }
 
         public string Action { get; set; }    
         
@@ -16,8 +16,6 @@ namespace AutoCurriculum.Models
         public string Status { get; set; }    
 
         public string Message { get; set; }   
-
-        // Đổi tên từ RuntimeMs thành ExecutionTimeMs
         public long ExecutionTimeMs { get; set; } 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

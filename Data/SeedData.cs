@@ -11,7 +11,7 @@ namespace AutoCurriculum.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             
-            // 1. TẠO ROLE "Admin" VÀ "User" (Nếu chưa có trong DB)
+            // 1. TẠO ROLE "Admin" VÀ "User" 
             string[] roleNames = { "Admin", "User" };
             foreach (var roleName in roleNames)
             {
@@ -45,7 +45,6 @@ namespace AutoCurriculum.Data
                 }
             }
             
-            // ĐÃ XÓA PHẦN TỰ ĐỘNG THÊM API KEY Ở ĐÂY
         }
     }
 }

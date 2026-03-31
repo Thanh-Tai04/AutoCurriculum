@@ -8,7 +8,7 @@ namespace AutoCurriculum.Middleware
         private readonly RequestDelegate _next;
         private readonly ILogger<RoleAccessMiddleware> _logger;
 
-        // Các path không cần kiểm tra (tránh vòng lặp redirect)
+        // Các path không cần kiểm tra 
         private static readonly string[] PublicPaths =
         [
             "/account/login",
@@ -37,7 +37,7 @@ namespace AutoCurriculum.Middleware
             var user = context.User;
 
             // ══════════════════════════════════════════════════════
-            // 0. CHẶN ADMIN ĐI LẠC VÀO GIAO DIỆN CỦA USER
+            // CHẶN ADMIN ĐI LẠC VÀO GIAO DIỆN CỦA USER
             // ══════════════════════════════════════════════════════
             if (user.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
             {
@@ -53,15 +53,12 @@ namespace AutoCurriculum.Middleware
 
                 if (!isAllowedForAdmin)
                 {
-                    // Trả Admin về đúng "Lãnh địa" của mình
                     context.Response.Redirect("/Admin/Dashboard");
                     return;
                 }
             }
 
-            // ══════════════════════════════════════════════════════
             // Bỏ qua các path public (cho khách hoặc User thường)
-            // ══════════════════════════════════════════════════════
             if (PublicPaths.Any(p => path.StartsWith(p)))
             {
                 await _next(context);
@@ -102,7 +99,7 @@ namespace AutoCurriculum.Middleware
             }
 
             // ══════════════════════════════════════════════════════
-            // 2. KIỂM TRA SESSION HẾT HẠN (User bị xóa khỏi DB)
+            // 2. KIỂM TRA SESSION HẾT HẠN 
             // ══════════════════════════════════════════════════════
             if (user.Identity?.IsAuthenticated == true)
             {

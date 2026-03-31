@@ -4,7 +4,7 @@ namespace AutoCurriculum.Repositories.Interfaces
 {
     public interface ILessonRepository
     {
-        Lesson? GetByIdWithContext(int id); // Kèm Chapter -> Topic (cho breadcrumb)
+        Lesson? GetByIdWithContext(int id); 
         void Add(Lesson lesson);
         void Save();
         Task SaveAsync();

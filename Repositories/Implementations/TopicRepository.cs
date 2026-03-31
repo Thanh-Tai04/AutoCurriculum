@@ -28,7 +28,7 @@ namespace AutoCurriculum.Repositories.Implementations
                     .Include(t => t.Source)
                         .Include(t => t.Chapters)
                             .ThenInclude(c => c.Lessons)
-                                .ThenInclude(l => l.Contents) // PHẢI CÓ DÒNG NÀY THÌ MỚI IN RA CHỮ ĐƯỢC
+                                .ThenInclude(l => l.Contents) 
                         .FirstOrDefault(t => t.TopicId == id);
         }
 

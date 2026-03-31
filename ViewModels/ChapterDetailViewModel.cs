@@ -6,7 +6,7 @@ namespace AutoCurriculum.ViewModels
         public string ChapterTitle { get; set; }
         public int ChapterOrder { get; set; }
         public int TopicId { get; set; }
-        public string TopicName { get; set; } // Để hiển thị Breadcrumb
+        public string TopicName { get; set; } 
         public List<LessonItemViewModel> Lessons { get; set; } = new();
     }
 
@@ -14,6 +14,6 @@ namespace AutoCurriculum.ViewModels
     {
         public int LessonId { get; set; }
         public string LessonTitle { get; set; }
-        public bool HasContent { get; set; } // Để hiển thị icon "Đã soạn" hoặc "Chưa soạn"
+        public bool HasContent { get; set; } 
     }
 }
