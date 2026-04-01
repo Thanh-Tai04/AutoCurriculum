@@ -20,7 +20,6 @@ namespace AutoCurriculum.Areas.Admin.Controllers
         {
             var logs = _context.SystemLogs
                                .OrderByDescending(x => x.CreatedAt)
-                               .Take(20)
                                .ToList();
 
             return View(logs);
